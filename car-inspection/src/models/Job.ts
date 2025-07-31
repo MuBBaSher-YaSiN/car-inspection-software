@@ -4,12 +4,12 @@ import mongoose, { Schema, models } from 'mongoose';
 const IssueSchema = new Schema({
   description: { type: String, required: true },
   checklist: {
-    brakes: Boolean,
-    lights: Boolean,
-    tires: Boolean,
-    engine: Boolean,
-    other: String,
-  },
+  brakes: { type: Boolean, default: false },
+  lights: { type: Boolean, default: false },
+  tires: { type: Boolean, default: false },
+  engine: { type: Boolean, default: false },
+  other: String,
+},
   images: [String], // Cloudinary URLs
   comments: String,
 });
@@ -20,6 +20,7 @@ const JobSchema = new Schema(
     customerName: { type: String, required: true },
     engineNumber: { type: String },
     assignedTo: { type: Schema.Types.ObjectId, ref: 'User' },
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     status: {
       type: String,
       enum: ['pending', 'in_progress', 'completed', 'rejected'],
