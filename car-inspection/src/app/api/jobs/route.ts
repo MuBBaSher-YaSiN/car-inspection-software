@@ -1,6 +1,7 @@
 // src/app/api/jobs/route.ts
 import { connectToDB } from '@/lib/db';
 import { Job } from '@/models/Job';
+import { jobSchema } from '@/lib/validations/jobSchema';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/options';
@@ -10,7 +11,15 @@ export async function POST(req: Request) {
     await connectToDB();
     const body = await req.json();
 
-    const newJob = await Job.create(body);
+    const parsed = jobSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const newJob = await Job.create(parsed.data);
     return NextResponse.json(newJob, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: 'Job creation failed' }, { status: 500 });
