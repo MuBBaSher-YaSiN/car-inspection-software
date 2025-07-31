@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface Job {
   _id: string;
@@ -17,7 +17,7 @@ const initialState: JobState = {
 };
 
 export const jobSlice = createSlice({
-  name: 'jobs',
+  name: "jobs",
   initialState,
   reducers: {
     setJobs(state, action: PayloadAction<Job[]>) {
