@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 interface Props {
   onSearch: (query: string) => void;
@@ -8,8 +8,8 @@ interface Props {
 }
 
 export default function SearchBar({ onSearch, onStatusFilter }: Props) {
-  const [query, setQuery] = useState('');
-  const [status, setStatus] = useState('');
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("");
 
   return (
     <div className="flex items-center gap-4 mb-4">

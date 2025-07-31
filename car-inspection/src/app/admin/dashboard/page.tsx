@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import JobCard from '@/components/JobCard';
-import SearchBar from '@/components/SearchBar'; // new component you'll create
-import { Job } from '@/types/job'; // ensure this matches your Job model type
+import { useEffect, useState } from "react";
+import JobCard from "@/components/JobCard";
+import SearchBar from "@/components/SearchBar"; // new component you'll create
+import { Job } from "@/types/job"; // ensure this matches your Job model type
 
 export default function AdminDashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -14,16 +14,17 @@ export default function AdminDashboard() {
   }, []);
 
   const fetchJobs = async () => {
-    const res = await fetch('/api/jobs');
+    const res = await fetch("/api/jobs");
     const data = await res.json();
     setJobs(data);
     setFiltered(data);
   };
 
   const handleSearch = (query: string) => {
-    const filteredJobs = jobs.filter((job) =>
-      job.carNumber.toLowerCase().includes(query.toLowerCase()) ||
-      job.customerName.toLowerCase().includes(query.toLowerCase())
+    const filteredJobs = jobs.filter(
+      (job) =>
+        job.carNumber.toLowerCase().includes(query.toLowerCase()) ||
+        job.customerName.toLowerCase().includes(query.toLowerCase())
     );
     setFiltered(filteredJobs);
   };
