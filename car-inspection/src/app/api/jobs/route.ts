@@ -23,10 +23,14 @@ console.log("Received body:", body);
 
     const newJob = await Job.create(parsed.data);
     return NextResponse.json(newJob, { status: 201 });
-  } catch (error) {
-    console.error(" Job creation failed:", error);
-    return NextResponse.json({ error: "Job creation failed" }, { status: 500 });
-  }
+  } catch (error: any) {
+  console.error("❌ Job creation error:", error);
+  return NextResponse.json(
+    { error: "Job creation failed", details: error.message },
+    { status: 500 }
+  );
+}
+
 }
 
 export async function GET(req: Request) {
