@@ -1,8 +1,7 @@
+"use client";
 
-'use client';
-
-import { useEffect, useState } from 'react';
-import JobCard from '@/components/JobCard';
+import { useEffect, useState } from "react";
+import JobCard from "@/components/JobCard";
 
 export default function TeamDashboard() {
   const [jobs, setJobs] = useState([]);
@@ -11,7 +10,7 @@ export default function TeamDashboard() {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const res = await fetch('/api/jobs');
+        const res = await fetch("/api/jobs");
         const data = await res.json();
         console.log("✅ Team dashboard jobs response:", data);
 

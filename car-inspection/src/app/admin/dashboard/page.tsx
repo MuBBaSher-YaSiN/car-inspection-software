@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import JobCard from "@/components/JobCard";
-import SearchBar from "@/components/SearchBar"; // new component you'll create
-import { Job } from "@/types/job"; // ensure this matches your Job model type
-
+import SearchBar from "@/components/SearchBar";
+import { Job } from "@/types/job";
 export default function AdminDashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [filtered, setFiltered] = useState<Job[]>([]);
