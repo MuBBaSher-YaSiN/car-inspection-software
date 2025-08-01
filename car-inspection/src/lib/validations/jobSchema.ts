@@ -19,4 +19,5 @@ export const jobSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
   engineNumber: z.string().optional(),
   issues: z.array(issueSchema),
+  status: z.enum(["pending", "in_progress", "completed", "rejected"]).optional(),
 });

@@ -20,7 +20,7 @@ const JobSchema = new Schema(
     customerName: { type: String, required: true },
     engineNumber: { type: String },
     assignedTo: { type: Schema.Types.ObjectId, ref: "User" },
-    createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    // createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     status: {
       type: String,
       enum: ["pending", "in_progress", "completed", "rejected"],

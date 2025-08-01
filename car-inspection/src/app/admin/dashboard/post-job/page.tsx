@@ -26,47 +26,40 @@ export default function PostJobPage() {
     }
   };
 
-  const handleSubmit = async () => {
-    const imageUrls: string[] = [];
+ const handleSubmit = async () => {
+  // Mock placeholder image URLs for dev
+  const imageUrls: string[] = form.images.map(() => "https://via.placeholder.com/300");
 
-    for (const img of form.images) {
-      const formData = new FormData();
-      formData.append('file', img);
-      formData.append('upload_preset', 'your_upload_preset'); // replace
-
-      const res = await fetch('https://api.cloudinary.com/v1_1/your-cloud-name/image/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await res.json();
-      imageUrls.push(data.secure_url);
-    }
-
-    const jobPayload = {
-      carNumber: form.carNumber,
-      customerName: form.customerName,
-      engineNumber: form.engineNumber,
-      issues: [
-        {
-          description: form.issueDescription,
-          checklist: form.checklist,
-          images: imageUrls,
-        },
-      ],
-      status: 'pending',
-    };
-
-    const res = await fetch('/api/jobs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(jobPayload),
-    });
-
-    if (res.ok) {
-      router.push('/admin/dashboard');
-    }
+  const jobPayload = {
+    carNumber: form.carNumber,
+    customerName: form.customerName,
+    engineNumber: form.engineNumber,
+    issues: [
+      {
+        description: form.issueDescription,
+        checklist: form.checklist,
+        images: imageUrls,
+      },
+    ],
+    status: 'pending',
   };
+
+  console.log("📦 jobPayload sent to API:", JSON.stringify(jobPayload, null, 2));
+
+  const res = await fetch('/api/jobs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(jobPayload),
+  });
+
+  if (res.ok) {
+    router.push('/admin/dashboard');
+  } else {
+    const error = await res.json();
+    console.error("❌ API error:", error);
+  }
+};
+
 
   return (
     <div className="p-6 max-w-xl mx-auto">
@@ -98,6 +91,42 @@ export default function PostJobPage() {
         onChange={(e) => setForm({ ...form, issueDescription: e.target.value })}
         className="textarea mb-2 w-full"
       />
+      <div className="mb-4">
+        <h3 className="font-semibold mb-2">Checklist</h3>
+
+        {['brakes', 'lights', 'tires', 'engine'].map((item) => (
+          <label key={item} className="flex items-center space-x-2 mb-1 capitalize">
+            <input
+              type="checkbox"
+              checked={form.checklist[item as keyof typeof form.checklist] as boolean}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  checklist: {
+                    ...prev.checklist,
+                    [item]: e.target.checked,
+                  },
+                }))
+              }
+            />
+            <span>{item}</span>
+          </label>
+        ))}
+
+        <input
+          type="text"
+          placeholder="Other issues"
+          value={form.checklist.other}
+          onChange={(e) =>
+            setForm((prev) => ({
+              ...prev,
+              checklist: { ...prev.checklist, other: e.target.value },
+            }))
+          }
+          className="input w-full mt-2"
+        />
+      </div>
+
       <input
         type="file"
         multiple
