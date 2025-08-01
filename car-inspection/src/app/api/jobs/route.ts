@@ -11,7 +11,6 @@ export async function POST(req: Request) {
   try {
     await connectToDB();
     const body = await req.json();
-console.log("🛠 Received body:", JSON.stringify(body, null, 2));
 console.log("Received body:", body);
     const parsed = jobSchema.safeParse(body);
     if (!parsed.success) {
@@ -24,7 +23,7 @@ console.log("Received body:", body);
     const newJob = await Job.create(parsed.data);
     return NextResponse.json(newJob, { status: 201 });
   } catch (error: any) {
-  console.error("❌ Job creation error:", error);
+  console.error(" Job creation error:", error);
   return NextResponse.json(
     { error: "Job creation failed", details: error.message },
     { status: 500 }

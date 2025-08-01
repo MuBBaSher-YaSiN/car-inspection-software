@@ -56,7 +56,7 @@ export default function PostJobPage() {
     router.push('/admin/dashboard');
   } else {
     const error = await res.json();
-    console.error("❌ API error:", error);
+    console.error(" API error:", error);
   }
 };
 
