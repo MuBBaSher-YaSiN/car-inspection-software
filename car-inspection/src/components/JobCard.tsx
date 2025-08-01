@@ -1,23 +1,109 @@
-import Link from "next/link";
-// import { Button } from '@/components/ui/button';
+"use client";
+
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
 export default function JobCard({ job }: { job: any }) {
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  const isTeam = session?.user?.role === "team";
+  const isAdmin = session?.user?.role === "admin";
+  const userId = session?.user?._id;
+
+  const handleClaim = async () => {
+    const res = await fetch(`/api/jobs/${job._id}/claim`, {
+      method: "PATCH",
+    });
+    if (res.ok) {
+      router.refresh(); // reload dashboard data
+    }
+  };
+
+  const handleComplete = async () => {
+    const res = await fetch(`/api/jobs/${job._id}/complete`, {
+      method: "PATCH",
+    });
+    if (res.ok) {
+      router.refresh();
+    }
+  };
+
+  const handleAccept = async () => {
+    const res = await fetch(`/api/job/${job._id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "completed" }),
+    });
+    if (res.ok) {
+      router.refresh();
+    }
+  };
+
+  const handleReject = async () => {
+    const note = prompt("Enter rejection reason:");
+    if (!note) return;
+
+    const res = await fetch(`/api/job/${job._id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "rejected", rejectionNote: note }),
+    });
+    if (res.ok) {
+      router.refresh();
+    }
+  };
+
   return (
     <div className="border rounded p-4 shadow mb-4">
-      {/* <Button variant="default">Primary</Button>
-      <Button variant="outline">Outline</Button>
-      <Button variant="ghost">Ghost</Button>
-      <Button variant="destructive">Delete</Button> */}
       <h3 className="text-lg font-bold">{job.carNumber}</h3>
       <p>Customer: {job.customerName}</p>
       <p>Engine: {job.engineNumber}</p>
-      <p>
-        Status: <span className="capitalize">{job.status}</span>
-      </p>
+      <p>Status: <span className="capitalize">{job.status}</span></p>
+
       {job.issues?.length > 0 && (
         <p className="text-sm mt-2 text-gray-600">
           {job.issues[0].description}
         </p>
       )}
+
+      <div className="mt-4 space-x-2">
+        {/* 🔵 Claim */}
+        {isTeam && job.status === "pending" && !job.assignedTo && (
+          <button
+            onClick={handleClaim}
+            className="bg-blue-600 text-white px-3 py-1 rounded"
+          >
+            Claim
+          </button>
+        )}
+
+        {/* ✅ Mark as Complete */}
+        {isTeam && job.status === "in-progress" && job.assignedTo === userId && (
+          <button
+            onClick={handleComplete}
+            className="bg-green-600 text-white px-3 py-1 rounded"
+          >
+            Mark as Complete
+          </button>
+        )}
+
+        {/* 🟢 Accept / 🔴 Reject */}
+        {isAdmin && job.status === "completed" && (
+          <>
+            <button
+              onClick={handleAccept}
+              className="bg-green-700 text-white px-3 py-1 rounded"
+            >
+              Accept
+            </button>
+            <button
+              onClick={handleReject}
+              className="bg-red-600 text-white px-3 py-1 rounded"
+            >
+              Reject
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
