@@ -1,31 +1,31 @@
-'use client';
+"use client";
 
-import { signIn } from 'next-auth/react';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { signIn } from "next-auth/react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await signIn('credentials', {
+    const res = await signIn("credentials", {
       redirect: false,
       email,
       password,
     });
 
     if (res?.ok) {
-      router.push('/');
+      router.push("/");
     } else {
-      setError('Invalid email or password');
+      setError("Invalid email or password");
     }
   };
 
@@ -37,7 +37,9 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
-            {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+            {error && (
+              <p className="text-sm text-red-500 text-center">{error}</p>
+            )}
 
             <div className="space-y-1">
               <Label htmlFor="email">Email</Label>
