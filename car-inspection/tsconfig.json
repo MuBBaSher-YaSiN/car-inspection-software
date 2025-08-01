@@ -23,6 +23,6 @@
 }
 
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "create-test-user.cts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "create-test-user.ts"],
   "exclude": ["node_modules"]
 }
