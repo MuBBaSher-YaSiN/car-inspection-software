@@ -4,7 +4,8 @@ import { Job } from "@/models/Job";
 import { jobSchema } from "@/lib/validations/jobSchema";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/options";
+import { authOptions } from '@/lib/authOptions';
+
 
 export async function POST(req: Request) {
   try {

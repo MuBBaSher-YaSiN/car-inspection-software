@@ -2,7 +2,8 @@ import { connectToDB } from "@/lib/db";
 import { Job } from "@/models/Job";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/options";
+import { authOptions } from '@/lib/authOptions';
+
 
 export async function PATCH(
   req: Request,
