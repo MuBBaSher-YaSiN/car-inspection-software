@@ -1,9 +1,12 @@
-// src/app/login/page.tsx
 'use client';
 
 import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,45 +23,52 @@ export default function LoginPage() {
     });
 
     if (res?.ok) {
-      router.push('/'); // or redirect based on role
+      router.push('/');
     } else {
       setError('Invalid email or password');
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4">
-      <form
-        onSubmit={handleLogin}
-        className="bg-white p-6 rounded shadow-md w-full max-w-md"
-      >
-        <h2 className="text-xl font-semibold mb-4 text-center">Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">Login</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleLogin} className="space-y-4">
+            {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+            <div className="space-y-1">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full px-4 py-2 border mb-3 rounded"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full px-4 py-2 border mb-4 rounded"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button
-          type="submit"
-          className="w-full bg-black text-white py-2 rounded hover:bg-gray-800 transition"
-        >
-          Login
-        </button>
-      </form>
+            <div className="space-y-1">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <Button type="submit" className="w-full">
+              Login
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
