@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
-import dbConnect from '@/lib/db';
-import User from '@/models/User';
+import {connectToDB} from '@/lib/db';
+import{ User} from '@/models/User';
 
 export async function GET() {
   try {
-    await dbConnect();
+    await connectToDB();
 
     const existingAdmin = await User.findOne({ email: 'caradmin@example.com' });
     if (existingAdmin) {
