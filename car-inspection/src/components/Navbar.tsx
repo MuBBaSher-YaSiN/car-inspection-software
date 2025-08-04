@@ -25,7 +25,7 @@ export default function Navbar() {
               key={link.href}
               href={link.href}
               className={cn(
-                'text-sm font-medium hover:underline',
+                'text-sm font-medium hover:text-primary transition-colors',
                 pathname.startsWith(link.href) && 'text-primary underline'
               )}
             >

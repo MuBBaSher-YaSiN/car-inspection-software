@@ -7,24 +7,21 @@ export default function JobCard({ job }: { job: any }) {
   const { data: session } = useSession();
   const router = useRouter();
 
+  // Keep all original logic exactly the same
   const isTeam = session?.user?.role === "team";
   const isAdmin = session?.user?.role === "admin";
   const userId = session?.user?._id;
+  const assignedTo = typeof job.assignedTo === "object" ? job.assignedTo._id : job.assignedTo;
+  const statusText = job.status.replace("_", " ");
 
-  const assignedTo =
-    typeof job.assignedTo === "object" ? job.assignedTo._id : job.assignedTo;
-
+  // Keep all handlers exactly the same
   const handleClaim = async () => {
-    const res = await fetch(`/api/jobs/${job._id}/claim`, {
-      method: "PATCH",
-    });
+    const res = await fetch(`/api/jobs/${job._id}/claim`, { method: "PATCH" });
     if (res.ok) router.refresh();
   };
 
   const handleComplete = async () => {
-    const res = await fetch(`/api/jobs/${job._id}/complete`, {
-      method: "PATCH",
-    });
+    const res = await fetch(`/api/jobs/${job._id}/complete`, { method: "PATCH" });
     if (res.ok) router.refresh();
   };
 
@@ -33,66 +30,72 @@ export default function JobCard({ job }: { job: any }) {
       method: "PATCH",
       body: JSON.stringify({ status: "accepted" }),
     });
-
-    const data = await res.json();
-    if (res.ok) {
-      router.refresh();
-    } else {
-      alert("Error: " + data?.error || "Something went wrong");
-    }
+    if (res.ok) router.refresh();
+    else alert("Error: " + (await res.json())?.error || "Something went wrong");
   };
 
   const handleReject = async () => {
     const note = prompt("Enter rejection reason:");
     if (!note) return;
-
     const res = await fetch(`/api/jobs/${job._id}`, {
       method: "PATCH",
       body: JSON.stringify({ status: "rejected", rejectionNote: note }),
     });
-
-    const data = await res.json();
-    if (res.ok) {
-      router.refresh();
-    } else {
-      alert("Error: " + data?.error || "Something went wrong");
-    }
+    if (res.ok) router.refresh();
+    else alert("Error: " + (await res.json())?.error || "Something went wrong");
   };
 
+  // Simplified UI with minimal styling
   return (
-    <div className="border rounded p-4 shadow mb-4">
-      <h3 className="text-lg font-bold">{job.carNumber}</h3>
-      <p>Customer: {job.customerName}</p>
-      <p>Engine: {job.engineNumber}</p>
-      <p>
-        Status:{" "}
-        <span className="capitalize">{job.status.replace("_", " ")}</span>
-      </p>
+    <div className="border rounded-lg p-4 space-y-3 bg-white shadow-sm hover:shadow transition-shadow">
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="font-bold text-lg">{job.carNumber}</h3>
+          <p className="text-gray-600">{job.customerName}</p>
+        </div>
+        <span className={`px-2 py-1 text-xs rounded-full ${
+          job.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+          job.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+          job.status === 'completed' ? 'bg-purple-100 text-purple-800' :
+          job.status === 'accepted' ? 'bg-green-100 text-green-800' :
+          'bg-red-100 text-red-800'
+        }`}>
+          {statusText}
+        </span>
+      </div>
 
-      {assignedTo && (
-        <p className="text-sm text-gray-500">
-          Claimed by: {job.assignedTo?.email || assignedTo}
-        </p>
-      )}
+      <div className="grid grid-cols-2 gap-2 text-sm">
+        <div>
+          <p className="text-gray-500">Engine</p>
+          <p>{job.engineNumber}</p>
+        </div>
+        {assignedTo && (
+          <div>
+            <p className="text-gray-500">Assigned</p>
+            <p className="truncate">{job.assignedTo?.email || assignedTo}</p>
+          </div>
+        )}
+      </div>
 
-      {/* Show rejection note only to team user */}
       {job.rejectionNote && isTeam && assignedTo === userId && (
-        <p className="text-sm text-red-600 mt-1">
-          Rejected: {job.rejectionNote}
-        </p>
+        <div className="bg-red-50 p-2 rounded text-sm">
+          <p className="font-medium text-red-700">Rejected:</p>
+          <p className="text-red-600">{job.rejectionNote}</p>
+        </div>
       )}
 
       {job.issues?.length > 0 && (
-        <p className="text-sm mt-2 text-gray-600">
-          {job.issues[0].description}
-        </p>
+        <div className="bg-gray-50 p-2 rounded text-sm">
+          <p className="font-medium">Issue:</p>
+          <p className="text-gray-700">{job.issues[0].description}</p>
+        </div>
       )}
 
-      <div className="mt-4 space-x-2">
+      <div className="flex flex-wrap gap-2 pt-2">
         {isTeam && job.status === "pending" && !assignedTo && (
           <button
             onClick={handleClaim}
-            className="bg-blue-600 text-white px-3 py-1 rounded"
+            className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
           >
             Claim
           </button>
@@ -101,24 +104,23 @@ export default function JobCard({ job }: { job: any }) {
         {isTeam && job.status === "in_progress" && assignedTo === userId && (
           <button
             onClick={handleComplete}
-            className="bg-green-600 text-white px-3 py-1 rounded"
+            className="px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700"
           >
-            Mark as Complete
+            Complete
           </button>
         )}
 
-        {/* Only show Accept/Reject if job is 'completed' and not already accepted */}
         {isAdmin && job.status === "completed" && (
           <>
             <button
               onClick={handleAccept}
-              className="bg-green-700 text-white px-3 py-1 rounded"
+              className="px-3 py-1.5 bg-green-700 text-white rounded text-sm hover:bg-green-800"
             >
               Accept
             </button>
             <button
               onClick={handleReject}
-              className="bg-red-600 text-white px-3 py-1 rounded"
+              className="px-3 py-1.5 bg-red-600 text-white rounded text-sm hover:bg-red-700"
             >
               Reject
             </button>
