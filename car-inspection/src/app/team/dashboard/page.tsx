@@ -7,26 +7,26 @@ export default function TeamDashboard() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        const res = await fetch("/api/jobs");
-        const data = await res.json();
-        console.log("✅ Team dashboard jobs response:", data);
+  const fetchJobs = async () => {
+    try {
+      const res = await fetch("/api/jobs");
+      const data = await res.json();
+      console.log("✅ Team dashboard jobs response:", data);
 
-        if (Array.isArray(data)) {
-          setJobs(data);
-        } else {
-          setJobs([]);
-        }
-      } catch (error) {
-        console.error(" Failed to fetch jobs:", error);
+      if (Array.isArray(data)) {
+        setJobs(data);
+      } else {
         setJobs([]);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("❌ Failed to fetch jobs:", error);
+      setJobs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchJobs();
   }, []);
 
@@ -38,7 +38,9 @@ export default function TeamDashboard() {
       ) : jobs.length === 0 ? (
         <p>No jobs found or access denied.</p>
       ) : (
-        jobs.map((job: any) => <JobCard key={job._id} job={job} />)
+        jobs.map((job: any) => (
+          <JobCard key={job._id} job={job} refreshJobs={fetchJobs} />
+        ))
       )}
     </div>
   );
