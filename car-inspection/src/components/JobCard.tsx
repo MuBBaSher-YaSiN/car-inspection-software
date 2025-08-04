@@ -30,7 +30,7 @@ export default function JobCard({ job }: { job: any }) {
   };
 
   const handleAccept = async () => {
-    const res = await fetch(`/api/job/${job._id}`, {
+    const res = await fetch(`/api/jobs/${job._id}`, {
       method: "PATCH",
       body: JSON.stringify({ status: "completed" }),
     });
@@ -43,7 +43,7 @@ export default function JobCard({ job }: { job: any }) {
     const note = prompt("Enter rejection reason:");
     if (!note) return;
 
-    const res = await fetch(`/api/job/${job._id}`, {
+    const res = await fetch(`/api/jobs/${job._id}`, {
       method: "PATCH",
       body: JSON.stringify({ status: "rejected", rejectionNote: note }),
     });
