@@ -18,29 +18,32 @@ export async function PATCH(
     const body = await req.json();
     const jobId = params.id;
 
-    if (!["completed", "rejected"].includes(body.status)) {
+    const updatePayload: any = {};
+
+    if (body.status === "rejected") {
+      updatePayload.status = "in_progress";
+      updatePayload.rejectionNote = body.rejectionNote || "";
+    } else if (body.status === "completed") {
+      updatePayload.status = "completed";
+      updatePayload.rejectionNote = "";
+    } else {
       return NextResponse.json(
         { error: "Invalid status update" },
         { status: 400 }
       );
     }
 
-    const updatePayload: any = {};
-
-    if (body.status === "rejected") {
-      updatePayload.status = "in_progress"; // 👈 Show to team member again
-      updatePayload.rejectionNote = body.rejectionNote || "";
-    } else {
-      updatePayload.status = "completed";
-      updatePayload.rejectionNote = ""; // Clear note if accepted
-    }
-
     const updatedJob = await Job.findByIdAndUpdate(jobId, updatePayload, {
       new: true,
     });
 
+    if (!updatedJob) {
+      return NextResponse.json({ error: "Job not found" }, { status: 404 });
+    }
+
     return NextResponse.json(updatedJob);
   } catch (error) {
+    console.error("PATCH error:", error);
     return NextResponse.json(
       { error: "Failed to update job" },
       { status: 500 }

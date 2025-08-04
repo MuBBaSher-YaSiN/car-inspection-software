@@ -29,24 +29,37 @@ export default function JobCard({ job }: { job: any }) {
     if (res.ok) router.refresh();
   };
 
-  const handleAccept = async () => {
-    const res = await fetch(`/api/job/${job._id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ status: "completed" }),
-    });
-    if (res.ok) router.refresh();
-  };
+const handleAccept = async () => {
+  const res = await fetch(`/api/job/${job._id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ status: "completed" }),
+  });
 
-  const handleReject = async () => {
-    const note = prompt("Enter rejection reason:");
-    if (!note) return;
+  const data = await res.json();
+  if (res.ok) {
+    router.refresh();
+  } else {
+    alert("Error: " + data?.error || "Something went wrong");
+  }
+};
 
-    const res = await fetch(`/api/job/${job._id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ status: "rejected", rejectionNote: note }),
-    });
-    if (res.ok) router.refresh();
-  };
+const handleReject = async () => {
+  const note = prompt("Enter rejection reason:");
+  if (!note) return;
+
+  const res = await fetch(`/api/job/${job._id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ status: "rejected", rejectionNote: note }),
+  });
+
+  const data = await res.json();
+  if (res.ok) {
+    router.refresh();
+  } else {
+    alert("Error: " + data?.error || "Something went wrong");
+  }
+};
+
 
   return (
     <div className="border rounded p-4 shadow mb-4">
