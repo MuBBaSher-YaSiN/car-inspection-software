@@ -31,7 +31,7 @@ export async function PATCH(
     if (body.status === "rejected") {
       updatePayload.rejectionNote = body.rejectionNote || "";
     } else {
-      updatePayload.rejectionNote = ""; // clear note on accept
+      updatePayload.rejectionNote = ""; 
     }
 
     const updatedJob = await Job.findByIdAndUpdate(jobId, updatePayload, {

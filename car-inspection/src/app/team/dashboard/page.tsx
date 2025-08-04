@@ -20,7 +20,7 @@ export default function TeamDashboard() {
           setJobs([]);
         }
       } catch (error) {
-        console.error("❌ Failed to fetch jobs:", error);
+        console.error(" Failed to fetch jobs:", error);
         setJobs([]);
       } finally {
         setLoading(false);

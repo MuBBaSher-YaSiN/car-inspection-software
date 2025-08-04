@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     const newJob = await Job.create(parsed.data);
     return NextResponse.json(newJob, { status: 201 });
   } catch (error: any) {
-    console.error("❌ Job creation error:", error);
+    console.error(" Job creation error:", error);
     return NextResponse.json(
       { error: "Job creation failed", details: error.message },
       { status: 500 }

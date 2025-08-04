@@ -4,14 +4,14 @@ import NextAuth from "next-auth";
 declare module "next-auth" {
   interface Session {
     user: {
-      id: string;
+      _id: string; // ✅ renamed from id to _id for consistency
       email: string;
       role: "admin" | "team";
     };
   }
 
   interface User {
-    id: string;
+    _id: string;
     email: string;
     role: "admin" | "team";
   }
@@ -19,7 +19,7 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT {
-    id: string;
+    _id: string;
     email: string;
     role: "admin" | "team";
   }
