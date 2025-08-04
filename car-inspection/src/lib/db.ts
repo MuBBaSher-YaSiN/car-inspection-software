@@ -1,4 +1,3 @@
-// src/lib/db.ts
 import mongoose from 'mongoose';
 
 const MONGODB_URI = process.env.MONGODB_URI as string;
@@ -7,7 +6,21 @@ if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable');
 }
 
-let cached = (global as any).mongoose || { conn: null, promise: null };
+type Cached = {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+};
+
+// Safely cast global mongoose cache without using `any`
+const globalWithMongoose = global as typeof globalThis & {
+  mongoose?: Cached;
+};
+
+if (!globalWithMongoose.mongoose) {
+  globalWithMongoose.mongoose = { conn: null, promise: null };
+}
+
+const cached = globalWithMongoose.mongoose;
 
 export async function connectToDB() {
   if (cached.conn) return cached.conn;
