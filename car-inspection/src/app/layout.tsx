@@ -6,6 +6,7 @@ import { Provider as ReduxProvider } from "react-redux";
 import { store } from "@/redux/store";
 import { ThemeProvider } from "@/components/theme-provider"; 
 import './globals.css';
+import Navbar from "@/components/Navbar";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <SessionProvider>
           <ReduxProvider store={store}>
             <ThemeProvider> {/*wrapping app with theme provider */}
+              <Navbar />
               {children}
             </ThemeProvider>
           </ReduxProvider>
