@@ -36,7 +36,7 @@ export async function GET(req: Request) {
     const session = await getServerSession({ req, ...authOptions });
 
     if (!session) {
-      console.log("⛔️ No session found in /api/jobs");
+      console.log(" No session found in /api/jobs");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

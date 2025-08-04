@@ -16,7 +16,7 @@ export default function JobCard({ job }: { job: any }) {
       method: "PATCH",
     });
     if (res.ok) {
-      router.refresh(); // reload dashboard data
+      router.refresh(); // Refresh to update job status
     }
   };
 
