@@ -18,7 +18,7 @@ export async function PATCH(
     const body = await req.json();
     const jobId = params.id;
 
-    const updatePayload: any = {};
+    const updatePayload: unknown = {};
 
     if (body.status === "rejected") {
       updatePayload.status = "in_progress"; // Send back to team

@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
     const newJob = await Job.create(parsed.data);
     return NextResponse.json(newJob, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(" Job creation error:", error);
     return NextResponse.json(
       { error: "Job creation failed", details: error.message },
@@ -68,7 +68,7 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json(jobs);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("🔥 Failed to fetch jobs:", error);
     return NextResponse.json(
       { error: "Failed to fetch jobs", details: error.message },

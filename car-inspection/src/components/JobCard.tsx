@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 
-export default function JobCard({ job, refreshJobs }: { job: any; refreshJobs: () => void }) {
+export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJobs: () => void }) {
   const { data: session } = useSession();
 
   const isTeam = session?.user?.role === "team";

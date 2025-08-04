@@ -57,7 +57,7 @@ export async function PATCH(
 
     console.log("✅ Job claimed by user:", user.email);
     return NextResponse.json({ message: "Job claimed successfully" });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("🔥 Error in PATCH /api/jobs/[id]/claim:", err);
     return NextResponse.json(
       { error: "Server error", details: err.message || "Unknown error" },

@@ -5,7 +5,7 @@ interface Job {
   carNumber: string;
   customerName: string;
   status: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface JobState {

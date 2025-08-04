@@ -34,7 +34,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     console.log("✅ Job marked completed by:", session.user.email);
     return NextResponse.json({ message: "Job marked as completed" });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("🔥 Error in complete route:", err);
     return NextResponse.json({ error: "Server error", details: err.message }, { status: 500 });
   }

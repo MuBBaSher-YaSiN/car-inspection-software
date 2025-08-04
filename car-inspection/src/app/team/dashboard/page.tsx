@@ -38,7 +38,7 @@ export default function TeamDashboard() {
       ) : jobs.length === 0 ? (
         <p>No jobs found or access denied.</p>
       ) : (
-        jobs.map((job: any) => (
+        jobs.map((job: unknown) => (
           <JobCard key={job._id} job={job} refreshJobs={fetchJobs} />
         ))
       )}

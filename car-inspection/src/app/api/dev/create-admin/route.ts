@@ -28,7 +28,7 @@ export async function GET() {
       { message: 'Admin created successfully.', user: newAdmin },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating admin:', error);
     return NextResponse.json(
       { message: 'Error creating admin', error: error.message },
