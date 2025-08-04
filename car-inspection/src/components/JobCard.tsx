@@ -11,45 +11,41 @@ export default function JobCard({ job }: { job: any }) {
   const isAdmin = session?.user?.role === "admin";
   const userId = session?.user?._id;
 
+  // Normalize assignedTo as string
+  const assignedTo =
+    typeof job.assignedTo === "object" ? job.assignedTo._id : job.assignedTo;
+
   const handleClaim = async () => {
     const res = await fetch(`/api/jobs/${job._id}/claim`, {
       method: "PATCH",
     });
-    if (res.ok) {
-      router.refresh(); // Refresh to update job status
-    }
+    if (res.ok) router.refresh();
   };
 
   const handleComplete = async () => {
     const res = await fetch(`/api/jobs/${job._id}/complete`, {
       method: "PATCH",
     });
-    if (res.ok) {
-      router.refresh();
-    }
+    if (res.ok) router.refresh();
   };
 
   const handleAccept = async () => {
-    const res = await fetch(`/api/jobs/${job._id}`, {
+    const res = await fetch(`/api/job/${job._id}`, {
       method: "PATCH",
       body: JSON.stringify({ status: "completed" }),
     });
-    if (res.ok) {
-      router.refresh();
-    }
+    if (res.ok) router.refresh();
   };
 
   const handleReject = async () => {
     const note = prompt("Enter rejection reason:");
     if (!note) return;
 
-    const res = await fetch(`/api/jobs/${job._id}`, {
+    const res = await fetch(`/api/job/${job._id}`, {
       method: "PATCH",
       body: JSON.stringify({ status: "rejected", rejectionNote: note }),
     });
-    if (res.ok) {
-      router.refresh();
-    }
+    if (res.ok) router.refresh();
   };
 
   return (
@@ -57,7 +53,23 @@ export default function JobCard({ job }: { job: any }) {
       <h3 className="text-lg font-bold">{job.carNumber}</h3>
       <p>Customer: {job.customerName}</p>
       <p>Engine: {job.engineNumber}</p>
-      <p>Status: <span className="capitalize">{job.status}</span></p>
+      <p>
+        Status:{" "}
+        <span className="capitalize">{job.status.replace("_", " ")}</span>
+      </p>
+
+      {assignedTo && (
+        <p className="text-sm text-gray-500">
+          Claimed by: {job.assignedTo?.email || assignedTo}
+        </p>
+      )}
+
+      {/* 🔴 Show rejection note only to assigned user */}
+      {job.rejectionNote && assignedTo === userId && (
+        <p className="text-sm text-red-600 mt-1">
+          Rejected: {job.rejectionNote}
+        </p>
+      )}
 
       {job.issues?.length > 0 && (
         <p className="text-sm mt-2 text-gray-600">
@@ -67,7 +79,7 @@ export default function JobCard({ job }: { job: any }) {
 
       <div className="mt-4 space-x-2">
         {/* 🔵 Claim */}
-        {isTeam && job.status === "pending" && !job.assignedTo && (
+        {isTeam && job.status === "pending" && !assignedTo && (
           <button
             onClick={handleClaim}
             className="bg-blue-600 text-white px-3 py-1 rounded"
@@ -77,7 +89,7 @@ export default function JobCard({ job }: { job: any }) {
         )}
 
         {/* ✅ Mark as Complete */}
-        {isTeam && job.status === "in-progress" && job.assignedTo === userId && (
+        {isTeam && job.status === "in_progress" && assignedTo === userId && (
           <button
             onClick={handleComplete}
             className="bg-green-600 text-white px-3 py-1 rounded"

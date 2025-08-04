@@ -2,8 +2,7 @@ import { connectToDB } from "@/lib/db";
 import { Job } from "@/models/Job";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from '@/lib/authOptions';
-
+import { authOptions } from "@/lib/authOptions";
 
 export async function PATCH(
   req: Request,
@@ -26,12 +25,14 @@ export async function PATCH(
       );
     }
 
-    const updatePayload: any = { status: body.status };
+    const updatePayload: any = {};
 
     if (body.status === "rejected") {
+      updatePayload.status = "in_progress"; // 👈 Show to team member again
       updatePayload.rejectionNote = body.rejectionNote || "";
     } else {
-      updatePayload.rejectionNote = ""; 
+      updatePayload.status = "completed";
+      updatePayload.rejectionNote = ""; // Clear note if accepted
     }
 
     const updatedJob = await Job.findByIdAndUpdate(jobId, updatePayload, {
