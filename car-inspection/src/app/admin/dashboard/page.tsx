@@ -29,10 +29,18 @@ export default function AdminDashboard() {
   };
 
   const handleStatus = (status: string) => {
-    if (!status) return setFiltered(jobs);
-    const filteredJobs = jobs.filter((job) => job.status === status);
-    setFiltered(filteredJobs);
-  };
+  if (!status) return setFiltered(jobs);
+
+  if (status === "rejected") {
+    // Show all jobs that were rejected at some point (based on note)
+    const filteredJobs = jobs.filter((job) => job.rejectionNote?.length > 0);
+    return setFiltered(filteredJobs);
+  }
+
+  const filteredJobs = jobs.filter((job) => job.status === status);
+  setFiltered(filteredJobs);
+};
+
 
   return (
     <div className="p-6">

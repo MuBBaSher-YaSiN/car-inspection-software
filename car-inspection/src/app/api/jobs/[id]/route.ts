@@ -21,11 +21,11 @@ export async function PATCH(
     const updatePayload: any = {};
 
     if (body.status === "rejected") {
-      updatePayload.status = "in_progress";
+      updatePayload.status = "in_progress"; // Send back to team
       updatePayload.rejectionNote = body.rejectionNote || "";
-    } else if (body.status === "completed") {
-      updatePayload.status = "completed";
-      updatePayload.rejectionNote = "";
+    } else if (body.status === "accepted") {
+      updatePayload.status = "accepted"; // Final accepted state
+      updatePayload.rejectionNote = ""; // Clear any previous notes
     } else {
       return NextResponse.json(
         { error: "Invalid status update" },

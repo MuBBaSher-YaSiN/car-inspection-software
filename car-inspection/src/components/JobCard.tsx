@@ -11,7 +11,6 @@ export default function JobCard({ job }: { job: any }) {
   const isAdmin = session?.user?.role === "admin";
   const userId = session?.user?._id;
 
-  // Normalize assignedTo as string
   const assignedTo =
     typeof job.assignedTo === "object" ? job.assignedTo._id : job.assignedTo;
 
@@ -29,37 +28,36 @@ export default function JobCard({ job }: { job: any }) {
     if (res.ok) router.refresh();
   };
 
-const handleAccept = async () => {
-  const res = await fetch(`/api/jobs/${job._id}`, {
-    method: "PATCH",
-    body: JSON.stringify({ status: "completed" }),
-  });
+  const handleAccept = async () => {
+    const res = await fetch(`/api/jobs/${job._id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "accepted" }),
+    });
 
-  const data = await res.json();
-  if (res.ok) {
-    router.refresh();
-  } else {
-    alert("Error: " + data?.error || "Something went wrong");
-  }
-};
+    const data = await res.json();
+    if (res.ok) {
+      router.refresh();
+    } else {
+      alert("Error: " + data?.error || "Something went wrong");
+    }
+  };
 
-const handleReject = async () => {
-  const note = prompt("Enter rejection reason:");
-  if (!note) return;
+  const handleReject = async () => {
+    const note = prompt("Enter rejection reason:");
+    if (!note) return;
 
-  const res = await fetch(`/api/jobs/${job._id}`, {
-    method: "PATCH",
-    body: JSON.stringify({ status: "rejected", rejectionNote: note }),
-  });
+    const res = await fetch(`/api/jobs/${job._id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "rejected", rejectionNote: note }),
+    });
 
-  const data = await res.json();
-  if (res.ok) {
-    router.refresh();
-  } else {
-    alert("Error: " + data?.error || "Something went wrong");
-  }
-};
-
+    const data = await res.json();
+    if (res.ok) {
+      router.refresh();
+    } else {
+      alert("Error: " + data?.error || "Something went wrong");
+    }
+  };
 
   return (
     <div className="border rounded p-4 shadow mb-4">
@@ -77,8 +75,8 @@ const handleReject = async () => {
         </p>
       )}
 
-      {/* 🔴 Show rejection note only to assigned user */}
-      {job.rejectionNote && assignedTo === userId && (
+      {/* Show rejection note only to team user */}
+      {job.rejectionNote && isTeam && assignedTo === userId && (
         <p className="text-sm text-red-600 mt-1">
           Rejected: {job.rejectionNote}
         </p>
@@ -91,7 +89,6 @@ const handleReject = async () => {
       )}
 
       <div className="mt-4 space-x-2">
-        {/* 🔵 Claim */}
         {isTeam && job.status === "pending" && !assignedTo && (
           <button
             onClick={handleClaim}
@@ -101,7 +98,6 @@ const handleReject = async () => {
           </button>
         )}
 
-        {/* ✅ Mark as Complete */}
         {isTeam && job.status === "in_progress" && assignedTo === userId && (
           <button
             onClick={handleComplete}
@@ -111,7 +107,7 @@ const handleReject = async () => {
           </button>
         )}
 
-        {/* 🟢 Accept / 🔴 Reject */}
+        {/* Only show Accept/Reject if job is 'completed' and not already accepted */}
         {isAdmin && job.status === "completed" && (
           <>
             <button
