@@ -1,28 +1,24 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
-export default function JobCard({ job }: { job: any }) {
+export default function JobCard({ job, refreshJobs }: { job: any; refreshJobs: () => void }) {
   const { data: session } = useSession();
-  const router = useRouter();
 
-  // Keep all original logic exactly the same
   const isTeam = session?.user?.role === "team";
   const isAdmin = session?.user?.role === "admin";
   const userId = session?.user?._id;
   const assignedTo = typeof job.assignedTo === "object" ? job.assignedTo._id : job.assignedTo;
   const statusText = job.status.replace("_", " ");
 
-  // Keep all handlers exactly the same
   const handleClaim = async () => {
     const res = await fetch(`/api/jobs/${job._id}/claim`, { method: "PATCH" });
-    if (res.ok) router.refresh();
+    if (res.ok) refreshJobs();
   };
 
   const handleComplete = async () => {
     const res = await fetch(`/api/jobs/${job._id}/complete`, { method: "PATCH" });
-    if (res.ok) router.refresh();
+    if (res.ok) refreshJobs();
   };
 
   const handleAccept = async () => {
@@ -30,7 +26,7 @@ export default function JobCard({ job }: { job: any }) {
       method: "PATCH",
       body: JSON.stringify({ status: "accepted" }),
     });
-    if (res.ok) router.refresh();
+    if (res.ok) refreshJobs();
     else alert("Error: " + (await res.json())?.error || "Something went wrong");
   };
 
@@ -41,11 +37,10 @@ export default function JobCard({ job }: { job: any }) {
       method: "PATCH",
       body: JSON.stringify({ status: "rejected", rejectionNote: note }),
     });
-    if (res.ok) router.refresh();
+    if (res.ok) refreshJobs();
     else alert("Error: " + (await res.json())?.error || "Something went wrong");
   };
 
-  // Simplified UI with minimal styling
   return (
     <div className="border rounded-lg p-4 space-y-3 bg-white shadow-sm hover:shadow transition-shadow">
       <div className="flex justify-between items-start">
