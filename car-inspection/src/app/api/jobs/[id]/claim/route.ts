@@ -48,7 +48,7 @@ export async function PATCH(
     await job.save();
 
     return NextResponse.json({ message: "Job claimed successfully" });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
       { error: "Server error", details: err.message },
       { status: 500 }
