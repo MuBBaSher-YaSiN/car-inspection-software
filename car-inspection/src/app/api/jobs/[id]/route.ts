@@ -4,10 +4,9 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: Request, context: any) {
+  const { params } = context;
+
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== "admin") {
@@ -18,14 +17,14 @@ export async function PATCH(
     const body = await req.json();
     const jobId = params.id;
 
-    const updatePayload: unknown = {};
+    const updatePayload: any = {};
 
     if (body.status === "rejected") {
-      updatePayload.status = "in_progress"; // Send back to team
+      updatePayload.status = "in_progress";
       updatePayload.rejectionNote = body.rejectionNote || "";
     } else if (body.status === "accepted") {
-      updatePayload.status = "accepted"; // Final accepted state
-      updatePayload.rejectionNote = ""; // Clear any previous notes
+      updatePayload.status = "accepted";
+      updatePayload.rejectionNote = "";
     } else {
       return NextResponse.json(
         { error: "Invalid status update" },

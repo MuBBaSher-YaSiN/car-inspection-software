@@ -1,4 +1,3 @@
-// src/app/api/pdf/[id]/route.ts
 import { connectToDB } from "@/lib/db";
 import { Job } from "@/models/Job";
 import { generateJobPDF } from "@/lib/pdf";
@@ -6,7 +5,9 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(_: Request, context: any) {
+  const { params } = context;
+
   try {
     const session = await getServerSession(authOptions);
     if (!session)
