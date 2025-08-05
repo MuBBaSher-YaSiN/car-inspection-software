@@ -4,8 +4,10 @@ import { Job } from "@/models/Job";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, context: Promise<{ params: { id: string } }>) {
+  const { params } = await context;
   try {
     const session = await getServerSession({ req, ...authOptions });
 
