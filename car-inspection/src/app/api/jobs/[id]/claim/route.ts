@@ -7,10 +7,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(req, authOptions); // ✅ Fix: pass req here
 
     if (!session || session.user.role !== "team") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,8 +23,7 @@ export async function PATCH(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const job = await Job.findById(context.params.id);
-
+    const job = await Job.findById(params.id);
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
