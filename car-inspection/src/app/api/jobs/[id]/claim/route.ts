@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { NextResponse } from "next/server";
 
-export async function PATCH(req: Request, context: any) {
+export async function PATCH(req: Request, context: { params: { id: string } }) {
   const { params } = context;
 
   try {

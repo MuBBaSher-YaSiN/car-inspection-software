@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 
-export async function PATCH(req: Request, context: any) {
+export async function PATCH(req: Request, context: { params: { id: string } }) {
   const { params } = context;
 
   try {
@@ -18,7 +18,6 @@ export async function PATCH(req: Request, context: any) {
     const jobId = params.id;
 
     const updatePayload: Partial<{ status: string; rejectionNote?: string }> = {};
-
 
     if (body.status === "rejected") {
       updatePayload.status = "in_progress";

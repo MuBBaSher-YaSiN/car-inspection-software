@@ -5,7 +5,10 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 
-export async function GET(_: Request, context: any) {
+export async function GET(
+  _: Request,
+  context: { params: { id: string } }
+) {
   const { params } = context;
 
   try {
@@ -32,11 +35,10 @@ export async function GET(_: Request, context: any) {
       },
     });
   } catch (err) {
-  const error = err as Error;
-  return NextResponse.json(
-    { error: "PDF generation failed", details: error.message },
-    { status: 500 }
-  );
-}
-
+    const error = err as Error;
+    return NextResponse.json(
+      { error: "PDF generation failed", details: error.message },
+      { status: 500 }
+    );
+  }
 }
