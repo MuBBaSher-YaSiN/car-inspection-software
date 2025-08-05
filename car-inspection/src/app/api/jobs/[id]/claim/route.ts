@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -23,7 +23,7 @@ export async function PATCH(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const job = await Job.findById(params.id);
+    const job = await Job.findById(context.params.id);
 
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
