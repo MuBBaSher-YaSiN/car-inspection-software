@@ -1,8 +1,8 @@
 // src/lib/pdf.ts
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import { JobType } from "@/types/job";
+import type { Job } from "@/types/job";
 
-export async function generateJobPDF(job: JobType): Promise<Uint8Array> {
+export async function generateJobPDF(job: Job): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595, 842]); // A4
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);

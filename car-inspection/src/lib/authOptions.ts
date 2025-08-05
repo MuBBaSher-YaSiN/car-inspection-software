@@ -11,6 +11,7 @@ export const authOptions = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
+      // @ts-expect-error - we're returning a custom user object
       async authorize(credentials) {
         await connectToDB();
         const user = await User.findOne({ email: credentials.email });
