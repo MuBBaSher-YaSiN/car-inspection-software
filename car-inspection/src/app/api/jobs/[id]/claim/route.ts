@@ -3,16 +3,14 @@ import { Job } from "@/models/Job";
 import { User } from "@/models/User";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, type NextApiRequestContext } from "next/server";
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: { [key: string]: string | string[] } }
+  context: NextApiRequestContext
 ): Promise<NextResponse> {
   try {
     const { id } = context.params;
-
-    // If id is array, pick first
     const jobId = Array.isArray(id) ? id[0] : id;
 
     const session = await getServerSession(authOptions);
