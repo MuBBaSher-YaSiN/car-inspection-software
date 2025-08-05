@@ -1,16 +1,13 @@
+// src/app/api/pdf/[id]/route.ts
 import { connectToDB } from "@/lib/db";
 import { Job } from "@/models/Job";
 import { generateJobPDF } from "@/lib/pdf";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
+import { authOptions } from '@/lib/authOptions';
 
-export async function GET(
-  _: Request,
-  context: { params: { id: string } }
-) {
-  const { params } = context;
 
+export async function GET(_: Request, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session)
@@ -35,9 +32,8 @@ export async function GET(
       },
     });
   } catch (err) {
-    const error = err as Error;
     return NextResponse.json(
-      { error: "PDF generation failed", details: error.message },
+      { error: "PDF generation failed" },
       { status: 500 }
     );
   }
