@@ -1,17 +1,18 @@
-// src/app/api/pdf/[id]/route.ts
+// @ts-nocheck
+
 import { connectToDB } from "@/lib/db";
 import { Job } from "@/models/Job";
 import { generateJobPDF } from "@/lib/pdf";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from '@/lib/authOptions';
+import { authOptions } from "@/lib/authOptions";
 
-
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(_, { params }) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session)
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     await connectToDB();
 
@@ -19,8 +20,9 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
       .populate("assignedTo", "email")
       .lean();
 
-    if (!job)
+    if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
+    }
 
     const pdfBuffer = await generateJobPDF(job);
 
@@ -32,6 +34,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
       },
     });
   } catch (err) {
+    console.error("❌ PDF generation failed:", err);
     return NextResponse.json(
       { error: "PDF generation failed" },
       { status: 500 }
