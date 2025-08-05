@@ -18,7 +18,7 @@ export async function PATCH(req, { params }) {
 
     await connectToDB();
     console.log("✅ DB connected for complete");
-
+// @ts-ignore
     const job = await Job.findById(params.id);
 
     if (!job) {

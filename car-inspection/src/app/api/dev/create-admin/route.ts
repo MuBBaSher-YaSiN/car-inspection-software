@@ -29,10 +29,15 @@ export async function GET() {
       { status: 201 }
     );
   } catch (error: unknown) {
-    console.error('Error creating admin:', error);
-    return NextResponse.json(
-      { message: 'Error creating admin', error: error.message },
-      { status: 500 }
-    );
-  }
+  console.error('Error creating admin:', error);
+
+  const errMessage =
+    error instanceof Error ? error.message : 'Unknown error';
+
+  return NextResponse.json(
+    { message: 'Error creating admin', error: errMessage },
+    { status: 500 }
+  );
+}
+
 }

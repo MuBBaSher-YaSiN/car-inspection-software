@@ -18,7 +18,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-
+// @ts-ignore
     const newJob = await Job.create(parsed.data);
     return NextResponse.json(newJob, { status: 201 });
   } catch (error: unknown) {

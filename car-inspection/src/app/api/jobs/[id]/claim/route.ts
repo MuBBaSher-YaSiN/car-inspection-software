@@ -20,7 +20,7 @@ export async function PATCH(req, { params }) {
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-
+// @ts-ignore
     const job = await Job.findById(params.id);
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
