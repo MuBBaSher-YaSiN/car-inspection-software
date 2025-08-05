@@ -3,14 +3,14 @@ import { Job } from "@/models/Job";
 import { User } from "@/models/User";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
-  req: Request,
-  context: { params: { id: string } }
+  req: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions); // remove req here
+    const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "team") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,22 +23,15 @@ export async function PATCH(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const job = await Job.findById(context.params.id);
+    const job = await Job.findById(params.id);
 
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    if (job.status !== "pending") {
+    if (job.status !== "pending" || job.assignedTo) {
       return NextResponse.json(
         { error: "Job is not available to be claimed" },
-        { status: 400 }
-      );
-    }
-
-    if (job.assignedTo) {
-      return NextResponse.json(
-        { error: "Job already claimed by another team member" },
         { status: 400 }
       );
     }
@@ -48,9 +41,9 @@ export async function PATCH(
     await job.save();
 
     return NextResponse.json({ message: "Job claimed successfully" });
-  } catch (err: unknown) {
+  } catch (err) {
     return NextResponse.json(
-      { error: "Server error", details: err.message },
+      { error: "Server error", details: (err as Error).message },
       { status: 500 }
     );
   }
