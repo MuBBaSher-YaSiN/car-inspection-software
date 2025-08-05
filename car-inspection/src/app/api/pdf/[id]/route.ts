@@ -32,9 +32,11 @@ export async function GET(_: Request, context: any) {
       },
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: "PDF generation failed" },
-      { status: 500 }
-    );
-  }
+  const error = err as Error;
+  return NextResponse.json(
+    { error: "PDF generation failed", details: error.message },
+    { status: 500 }
+  );
+}
+
 }

@@ -17,7 +17,8 @@ export async function PATCH(req: Request, context: any) {
     const body = await req.json();
     const jobId = params.id;
 
-    const updatePayload: any = {};
+    const updatePayload: Partial<{ status: string; rejectionNote?: string }> = {};
+
 
     if (body.status === "rejected") {
       updatePayload.status = "in_progress";
