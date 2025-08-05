@@ -7,10 +7,15 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  context: { params: { [key: string]: string | string[] } }
+): Promise<NextResponse> {
   try {
-    const session = await getServerSession(req, authOptions); // ✅ Fix: pass req here
+    const { id } = context.params;
+
+    // If id is array, pick first
+    const jobId = Array.isArray(id) ? id[0] : id;
+
+    const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "team") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,7 +28,7 @@ export async function PATCH(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const job = await Job.findById(params.id);
+    const job = await Job.findById(jobId);
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
@@ -41,8 +46,9 @@ export async function PATCH(
 
     return NextResponse.json({ message: "Job claimed successfully" });
   } catch (err) {
+    const error = err as Error;
     return NextResponse.json(
-      { error: "Server error", details: (err as Error).message },
+      { error: "Server error", details: error.message },
       { status: 500 }
     );
   }

@@ -5,7 +5,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { NextResponse } from "next/server";
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
     const session = await getServerSession({ req, ...authOptions });
 
@@ -24,9 +27,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    if (job.assignedTo.toString() !== session.user._id || job.status !== "in_progress") {
+    if (
+      job.assignedTo.toString() !== session.user._id ||
+      job.status !== "in_progress"
+    ) {
       console.error("❌ Unauthorized or invalid job status");
-      return NextResponse.json({ error: "You can't mark this job complete" }, { status: 400 });
+      return NextResponse.json(
+        { error: "You can't mark this job complete" },
+        { status: 400 }
+      );
     }
 
     job.status = "completed";
@@ -34,8 +43,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     console.log("✅ Job marked completed by:", session.user.email);
     return NextResponse.json({ message: "Job marked as completed" });
-  } catch (err: unknown) {
+  } catch (err) {
     console.error("🔥 Error in complete route:", err);
-    return NextResponse.json({ error: "Server error", details: err.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Server error", details: err.message },
+      { status: 500 }
+    );
   }
 }
