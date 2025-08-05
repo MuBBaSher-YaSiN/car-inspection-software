@@ -4,9 +4,10 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 
-export async function PATCH(req: Request, context: { params: { id: string } }) {
-  const { params } = context;
-
+export async function PATCH(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== "admin") {
@@ -17,14 +18,14 @@ export async function PATCH(req: Request, context: { params: { id: string } }) {
     const body = await req.json();
     const jobId = params.id;
 
-    const updatePayload: Partial<{ status: string; rejectionNote?: string }> = {};
+    const updatePayload: unknown = {};
 
     if (body.status === "rejected") {
-      updatePayload.status = "in_progress";
+      updatePayload.status = "in_progress"; // Send back to team
       updatePayload.rejectionNote = body.rejectionNote || "";
     } else if (body.status === "accepted") {
-      updatePayload.status = "accepted";
-      updatePayload.rejectionNote = "";
+      updatePayload.status = "accepted"; // Final accepted state
+      updatePayload.rejectionNote = ""; // Clear any previous notes
     } else {
       return NextResponse.json(
         { error: "Invalid status update" },
