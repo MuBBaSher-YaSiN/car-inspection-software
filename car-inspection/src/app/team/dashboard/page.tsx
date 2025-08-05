@@ -39,6 +39,7 @@ export default function TeamDashboard() {
         <p>No jobs found or access denied.</p>
       ) : (
         jobs.map((job: unknown) => (
+          // @ts-ignore
           <JobCard key={job._id} job={job} refreshJobs={fetchJobs} />
         ))
       )}

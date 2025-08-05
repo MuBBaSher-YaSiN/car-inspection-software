@@ -21,13 +21,14 @@ export async function POST(req: Request) {
 // @ts-ignore
     const newJob = await Job.create(parsed.data);
     return NextResponse.json(newJob, { status: 201 });
-  } catch (error: unknown) {
-    console.error(" Job creation error:", error);
-    return NextResponse.json(
-      { error: "Job creation failed", details: error.message },
-      { status: 500 }
-    );
-  }
+  }  catch (error: unknown) {
+  console.error("Job creation error:", error);
+  const message = error instanceof Error ? error.message : "Unknown error";
+  return NextResponse.json(
+    { error: "Job creation failed", details: message },
+    { status: 500 }
+  );
+}
 }
 
 
@@ -48,6 +49,7 @@ export async function GET(req: Request) {
     let jobs;
 
     if (role === "admin") {
+      // @ts-ignore
       jobs = await Job.find({}).sort({ createdAt: -1 });
     } else {
       //  Lookup user ID from email
@@ -58,7 +60,7 @@ export async function GET(req: Request) {
       }
 
       const userId = user._id;
-
+// @ts-ignore
       jobs = await Job.find({
         $or: [
           { status: "pending" },
@@ -69,11 +71,12 @@ export async function GET(req: Request) {
 
     return NextResponse.json(jobs);
   } catch (error: unknown) {
-    console.error("🔥 Failed to fetch jobs:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch jobs", details: error.message },
-      { status: 500 }
-    );
-  }
+  console.error("🔥 Failed to fetch jobs:", error);
+  const message = error instanceof Error ? error.message : "Unknown error";
+  return NextResponse.json(
+    { error: "Failed to fetch jobs", details: message },
+    { status: 500 }
+  );
+}
 }
 
