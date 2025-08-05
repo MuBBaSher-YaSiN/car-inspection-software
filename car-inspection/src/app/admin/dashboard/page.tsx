@@ -2,7 +2,7 @@
 'use client';
 import JobCard from "@/components/JobCard";
 import SearchBar from "@/components/SearchBar";
-import { Job } from "@/types/job";
+import type { Job } from "@/types/job";
 import { useEffect, useState } from "react";
 
 export default function AdminDashboard() {
