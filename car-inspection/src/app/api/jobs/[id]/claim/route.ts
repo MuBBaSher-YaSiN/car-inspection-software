@@ -1,4 +1,3 @@
-// src/app/api/jobs/[id]/claim/route.ts
 import { connectToDB } from "@/lib/db";
 import { Job } from "@/models/Job";
 import { User } from "@/models/User";
@@ -8,35 +7,29 @@ import { NextResponse } from "next/server";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession({ req, ...authOptions });
+    const session = await getServerSession(authOptions); // remove req here
 
     if (!session || session.user.role !== "team") {
-      console.error("❌ Unauthorized access attempt");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await connectToDB();
-    console.log("✅ Connected to DB");
 
     const user = await User.findOne({ email: session.user.email });
     if (!user) {
-      console.error("❌ User not found:", session.user.email);
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    console.log("🔍 Looking up job:", params.id);
-    const job = await Job.findById(params.id);
+    const job = await Job.findById(context.params.id);
 
     if (!job) {
-      console.error("❌ Job not found");
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
     if (job.status !== "pending") {
-      console.error("❌ Job is not in pending status");
       return NextResponse.json(
         { error: "Job is not available to be claimed" },
         { status: 400 }
@@ -44,7 +37,6 @@ export async function PATCH(
     }
 
     if (job.assignedTo) {
-      console.error("❌ Job already claimed by:", job.assignedTo);
       return NextResponse.json(
         { error: "Job already claimed by another team member" },
         { status: 400 }
@@ -55,12 +47,10 @@ export async function PATCH(
     job.status = "in_progress";
     await job.save();
 
-    console.log("✅ Job claimed by user:", user.email);
     return NextResponse.json({ message: "Job claimed successfully" });
-  } catch (err: unknown) {
-    console.error("🔥 Error in PATCH /api/jobs/[id]/claim:", err);
+  } catch (err: any) {
     return NextResponse.json(
-      { error: "Server error", details: err.message || "Unknown error" },
+      { error: "Server error", details: err.message },
       { status: 500 }
     );
   }
