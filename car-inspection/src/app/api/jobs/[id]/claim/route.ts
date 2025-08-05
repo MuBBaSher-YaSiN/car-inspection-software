@@ -1,3 +1,4 @@
+// src/app/api/jobs/[id]/claim/route.ts
 import { connectToDB } from "@/lib/db";
 import { Job } from "@/models/Job";
 import { User } from "@/models/User";
@@ -5,9 +6,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { NextResponse } from "next/server";
 
-export async function PATCH(req: Request, context: { params: { id: string } }) {
-  const { params } = context;
-
+export async function PATCH(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
     const session = await getServerSession({ req, ...authOptions });
 
@@ -58,7 +60,7 @@ export async function PATCH(req: Request, context: { params: { id: string } }) {
   } catch (err: unknown) {
     console.error("🔥 Error in PATCH /api/jobs/[id]/claim:", err);
     return NextResponse.json(
-      { error: "Server error", details: (err as Error).message || "Unknown error" },
+      { error: "Server error", details: err.message || "Unknown error" },
       { status: 500 }
     );
   }
