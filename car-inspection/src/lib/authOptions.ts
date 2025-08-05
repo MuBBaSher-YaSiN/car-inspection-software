@@ -20,7 +20,7 @@ export const authOptions = {
         if (!isValid) throw new Error("Invalid password");
 
         return {
-          _id: user._id.toString(), // ✅ send _id explicitly
+          _id: user._id.toString(), //  send _id explicitly
           email: user.email,
           role: user.role,
         };

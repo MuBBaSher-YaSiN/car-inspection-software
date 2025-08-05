@@ -50,7 +50,7 @@ export async function GET(req: Request) {
     if (role === "admin") {
       jobs = await Job.find({}).sort({ createdAt: -1 });
     } else {
-      // ✅ Lookup user ID from email
+      //  Lookup user ID from email
       const user = await User.findOne({ email });
 
       if (!user) {

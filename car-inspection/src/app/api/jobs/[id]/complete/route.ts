@@ -13,17 +13,17 @@ export async function PATCH(
     const session = await getServerSession({ req, ...authOptions });
 
     if (!session || session.user.role !== "team") {
-      console.error("❌ Unauthorized access");
+      console.error("Unauthorized access");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await connectToDB();
-    console.log("✅ DB connected for complete");
+    console.log("DB connected for complete");
 
     const job = await Job.findById(params.id);
 
     if (!job) {
-      console.error("❌ Job not found");
+      console.error(" Job not found");
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
@@ -31,7 +31,7 @@ export async function PATCH(
       job.assignedTo.toString() !== session.user._id ||
       job.status !== "in_progress"
     ) {
-      console.error("❌ Unauthorized or invalid job status");
+      console.error(" Unauthorized or invalid job status");
       return NextResponse.json(
         { error: "You can't mark this job complete" },
         { status: 400 }
@@ -41,7 +41,7 @@ export async function PATCH(
     job.status = "completed";
     await job.save();
 
-    console.log("✅ Job marked completed by:", session.user.email);
+    console.log(" Job marked completed by:", session.user.email);
     return NextResponse.json({ message: "Job marked as completed" });
   } catch (err) {
     console.error("🔥 Error in complete route:", err);
