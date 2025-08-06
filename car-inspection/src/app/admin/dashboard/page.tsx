@@ -1,7 +1,13 @@
-'use client';
+"use client";
 import JobCard from "@/components/JobCard";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Search, Filter, RefreshCw } from "lucide-react";
@@ -34,24 +40,24 @@ export default function AdminDashboard() {
     setFiltered(filteredJobs);
   };
 
-const handleStatus = (status: string) => {
-  if (status === "all" || !status) return setFiltered(jobs);
+  const handleStatus = (status: string) => {
+    if (status === "all" || !status) return setFiltered(jobs);
 
-  if (status === "rejected") {
-    const filteredJobs = jobs.filter((job) => job.rejectionNote?.length > 0);
-    return setFiltered(filteredJobs);
-  }
+    if (status === "rejected") {
+      const filteredJobs = jobs.filter((job) => job.rejectionNote?.length > 0);
+      return setFiltered(filteredJobs);
+    }
 
-  if (status === "completed") {
-    const filteredJobs = jobs.filter(
-      (job) => job.status === "completed" || job.status === "accepted"
-    );
-    return setFiltered(filteredJobs);
-  }
+    if (status === "completed") {
+      const filteredJobs = jobs.filter(
+        (job) => job.status === "completed" || job.status === "accepted"
+      );
+      return setFiltered(filteredJobs);
+    }
 
-  const filteredJobs = jobs.filter((job) => job.status === status);
-  setFiltered(filteredJobs);
-};
+    const filteredJobs = jobs.filter((job) => job.status === status);
+    setFiltered(filteredJobs);
+  };
 
   // Animation variants
   const containerVariants = {
@@ -59,21 +65,21 @@ const handleStatus = (status: string) => {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const titleVariants = {
     hidden: { y: -20, opacity: 0 },
-    show: { 
-      y: 0, 
+    show: {
+      y: 0,
       opacity: 1,
       transition: {
         type: "spring",
-        stiffness: 100
-      }
-    }
+        stiffness: 100,
+      },
+    },
   };
 
   return (
@@ -85,27 +91,34 @@ const handleStatus = (status: string) => {
         className="space-y-6"
       >
         {/* Header with search */}
-        <motion.div variants={titleVariants} className="flex flex-col md:flex-row justify-between gap-4">
+        <motion.div
+          variants={titleVariants}
+          className="flex flex-col md:flex-row justify-between gap-4"
+        >
           <div>
             <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               All Jobs
             </h2>
-            <p className="text-muted-foreground">Manage and monitor all service requests</p>
+            <p className="text-muted-foreground">
+              Manage and monitor all service requests
+            </p>
           </div>
-          
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={fetchJobs}
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+            />
             Refresh
           </motion.button>
         </motion.div>
 
         {/* Search and filter */}
-        <motion.div 
+        <motion.div
           variants={titleVariants}
           className="grid grid-cols-1 md:grid-cols-2 pb-3 gap-4"
         >
@@ -118,27 +131,31 @@ const handleStatus = (status: string) => {
             />
           </div>
 
-<Select onValueChange={(value) => handleStatus(value === "all" ? "" : value)}>
-  <SelectTrigger className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
-    <div className="flex items-center gap-2">
-      <Filter className="w-4 h-4 text-muted-foreground" />
-      <SelectValue placeholder="Filter by status" />
-    </div>
-  </SelectTrigger>
-  <SelectContent className="backdrop-blur-sm bg-white/80 dark:bg-gray-900/80">
-    <SelectItem value="all">All Jobs</SelectItem>
-    <SelectItem value="pending">Pending</SelectItem>
-    <SelectItem value="in_progress">In Progress</SelectItem>
-    <SelectItem value="completed">Completed</SelectItem>
-    <SelectItem value="accepted">Accepted</SelectItem>
-    <SelectItem value="rejected">Rejected</SelectItem>
-  </SelectContent>
-</Select>
+          <Select
+            onValueChange={(value) =>
+              handleStatus(value === "all" ? "" : value)
+            }
+          >
+            <SelectTrigger className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-muted-foreground" />
+                <SelectValue placeholder="Filter by status" />
+              </div>
+            </SelectTrigger>
+            <SelectContent className="backdrop-blur-sm bg-white/80 dark:bg-gray-900/80">
+              <SelectItem value="all">All Jobs</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="in_progress">In Progress</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="accepted">Accepted</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
         </motion.div>
 
         {/* Jobs list */}
         {filtered.length === 0 ? (
-          <motion.div 
+          <motion.div
             variants={titleVariants}
             className="flex flex-col items-center justify-center py-12 gap-4 text-center"
           >
@@ -147,11 +164,12 @@ const handleStatus = (status: string) => {
             </div>
             <h3 className="text-xl font-semibold">No jobs found</h3>
             <p className="text-muted-foreground max-w-md">
-              Try adjusting your search or filter to find what you're looking for
+              Try adjusting your search or filter to find what you're looking
+              for
             </p>
           </motion.div>
         ) : (
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             className="grid grid-cols-1 gap-4"
           >

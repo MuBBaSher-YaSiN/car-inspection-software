@@ -1,39 +1,41 @@
 // src/app/admin/dashboard/add-user/page.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function AddUserPage() {
   const router = useRouter();
   const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'team',
+    name: "",
+    email: "",
+    password: "",
+    role: "team",
   });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
-    const res = await fetch('/api/users', {
-      method: 'POST',
+    const res = await fetch("/api/users", {
+      method: "POST",
       body: JSON.stringify(form),
     });
 
     const data = await res.json();
 
     if (!res.ok) return setError(data.message);
-    setSuccess('User created successfully');
-    setForm({ name: '', email: '', password: '', role: 'team' });
+    setSuccess("User created successfully");
+    setForm({ name: "", email: "", password: "", role: "team" });
   };
 
   return (
@@ -73,7 +75,10 @@ export default function AddUserPage() {
           <option value="admin">Admin</option>
         </select>
 
-        <button type="submit" className="w-full bg-black text-white p-2 rounded">
+        <button
+          type="submit"
+          className="w-full bg-black text-white p-2 rounded"
+        >
           Create User
         </button>
 

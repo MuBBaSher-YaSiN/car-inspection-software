@@ -18,7 +18,7 @@ export async function PATCH(req, { params }) {
 
     await connectToDB();
     console.log("✅ DB connected for complete");
-// @ts-ignore
+    // @ts-ignore
     const job = await Job.findById(params.id);
 
     if (!job) {
@@ -26,9 +26,15 @@ export async function PATCH(req, { params }) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    if (job.assignedTo.toString() !== session.user._id || job.status !== "in_progress") {
+    if (
+      job.assignedTo.toString() !== session.user._id ||
+      job.status !== "in_progress"
+    ) {
       console.error("❌ Unauthorized or invalid job status");
-      return NextResponse.json({ error: "You can't mark this job complete" }, { status: 400 });
+      return NextResponse.json(
+        { error: "You can't mark this job complete" },
+        { status: 400 }
+      );
     }
 
     job.status = "completed";
@@ -38,6 +44,9 @@ export async function PATCH(req, { params }) {
     return NextResponse.json({ message: "Job marked as completed" });
   } catch (err) {
     console.error("🔥 Error in complete route:", err);
-    return NextResponse.json({ error: "Server error", details: err.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Server error", details: err.message },
+      { status: 500 }
+    );
   }
 }
