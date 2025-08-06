@@ -11,7 +11,7 @@ export async function PATCH(req, { params }) {
     const session = await getServerSession({ req, ...authOptions });
 
     if (!session || session.user.role !== "team") {
-      console.error("❌ Unauthorized access attempt");
+      console.error(" Unauthorized access attempt");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -36,7 +36,7 @@ export async function PATCH(req, { params }) {
 
     return NextResponse.json({ message: "Job claimed successfully" });
   } catch (err) {
-    console.error("🔥 Error in claim route:", err);
+    console.error(" Error in claim route:", err);
     return NextResponse.json({ error: "Server error", details: err.message }, { status: 500 });
   }
 }

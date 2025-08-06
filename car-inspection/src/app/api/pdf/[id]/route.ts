@@ -19,7 +19,7 @@ export async function GET(
 
     await connectToDB();
 
-    // ✅ Safely access the dynamic param
+    //  Safely access the dynamic param
     const id = context?.params?.id;
 
     if (!id) {
@@ -47,7 +47,7 @@ export async function GET(
       },
     });
   } catch (err) {
-    console.error("❌ PDF generation failed:", err);
+    console.error(" PDF generation failed:", err);
     return NextResponse.json(
       { error: "PDF generation failed" },
       { status: 500 }

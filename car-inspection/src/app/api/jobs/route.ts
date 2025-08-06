@@ -71,7 +71,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(jobs);
   } catch (error: unknown) {
-  console.error("🔥 Failed to fetch jobs:", error);
+  console.error(" Failed to fetch jobs:", error);
   const message = error instanceof Error ? error.message : "Unknown error";
   return NextResponse.json(
     { error: "Failed to fetch jobs", details: message },
