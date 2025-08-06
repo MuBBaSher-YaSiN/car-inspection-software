@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Mail, AlertTriangle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
+import { containerVariants, itemVariants} from "@/lib/animations";
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");

@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import JobCard from "@/components/JobCard";
 import { motion, AnimatePresence } from "framer-motion";
-import { RefreshCw } from "lucide-react";
-
+import { RefreshCw, Wrench } from "lucide-react";
+import { containerVariants, titleVariants } from "@/lib/animations";
 export default function TeamDashboard() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);

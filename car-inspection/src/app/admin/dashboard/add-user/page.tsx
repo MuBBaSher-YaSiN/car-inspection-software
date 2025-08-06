@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { containerVariants, itemVariants} from "@/lib/animations";
 import { 
   FiUserPlus, FiMail, FiLock, 
   FiUsers, FiCheckCircle, FiAlertCircle 
@@ -55,13 +56,13 @@ export default function AddUserPage() {
     }
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
-  };
+  // const containerVariants = {
+  //   hidden: { opacity: 0 },
+  //   show: {
+  //     opacity: 1,
+  //     transition: { staggerChildren: 0.1 },
+  //   },
+  // };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },

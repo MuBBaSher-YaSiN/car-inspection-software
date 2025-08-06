@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Car, Wrench, UserCog, Home } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-
+import { containerVariants, itemVariants} from "@/lib/animations";
 export default function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
