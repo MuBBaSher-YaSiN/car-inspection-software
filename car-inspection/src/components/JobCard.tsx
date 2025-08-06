@@ -2,6 +2,10 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card"; // Adjust import path if needed
 
 export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJobs: () => void }) {
   const { data: session } = useSession();
@@ -9,13 +13,10 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
   const isTeam = session?.user?.role === "team";
   const isAdmin = session?.user?.role === "admin";
   const userId = session?.user?._id;
-  // @ts-ignore
   const assignedTo = typeof job.assignedTo === "object" ? job.assignedTo._id : job.assignedTo;
-  // @ts-ignore
   const statusText = job.status.replace("_", " ");
 
   const handleClaim = async () => {
-    // @ts-ignore
     const res = await fetch(`/api/jobs/${job._id}/claim`, { method: "PATCH" });
     if (res.ok) refreshJobs();
   };
@@ -46,92 +47,103 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
   };
 
   return (
-    <div className="border rounded-lg p-4 space-y-3 bg-white shadow-sm hover:shadow transition-shadow">
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="font-bold text-lg">{job.carNumber}</h3>
-          <p className="text-gray-600">{job.customerName}</p>
-        </div>
-        <span className={`px-2 py-1 text-xs rounded-full ${
-          job.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-          job.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-          job.status === 'completed' ? 'bg-purple-100 text-purple-800' :
-          job.status === 'accepted' ? 'bg-green-100 text-green-800' :
-          'bg-red-100 text-red-800'
-        }`}>
-          {statusText}
-        </span>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 text-sm">
-        <div>
-          <p className="text-gray-500">Engine</p>
-          <p>{job.engineNumber}</p>
-        </div>
-        {assignedTo && (
+    <Card className="hover:shadow transition-shadow">
+      <CardContent className="space-y-4">
+        <div className="flex justify-between items-start">
           <div>
-            <p className="text-gray-500">Assigned</p>
-            <p className="truncate">{job.assignedTo?.email || assignedTo}</p>
+            <h3 className="font-bold text-lg text-card-foreground">{job.carNumber}</h3>
+            <p className="text-muted-foreground">{job.customerName}</p>
+          </div>
+          <span
+            className={`px-2 py-1 text-xs rounded-full font-medium ${
+              job.status === "pending"
+                ? "bg-yellow-200 text-yellow-900 dark:bg-yellow-300/20 dark:text-yellow-300"
+                : job.status === "in_progress"
+                ? "bg-blue-200 text-blue-900 dark:bg-blue-300/20 dark:text-blue-300"
+                : job.status === "completed"
+                ? "bg-purple-200 text-purple-900 dark:bg-purple-300/20 dark:text-purple-300"
+                : job.status === "accepted"
+                ? "bg-green-200 text-green-900 dark:bg-green-300/20 dark:text-green-300"
+                : "bg-red-200 text-red-900 dark:bg-red-300/20 dark:text-red-300"
+            }`}
+          >
+            {statusText}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div>
+            <p className="text-muted-foreground">Engine</p>
+            <p className="text-card-foreground">{job.engineNumber}</p>
+          </div>
+          {assignedTo && (
+            <div>
+              <p className="text-muted-foreground">Assigned</p>
+              <p className="truncate text-card-foreground">
+                {job.assignedTo?.email || assignedTo}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {job.rejectionNote && isTeam && assignedTo === userId && (
+          <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded text-sm">
+            <p className="font-semibold text-red-700 dark:text-red-400">Rejected:</p>
+            <p className="text-red-600 dark:text-red-300">{job.rejectionNote}</p>
           </div>
         )}
-      </div>
 
-      {job.rejectionNote && isTeam && assignedTo === userId && (
-        <div className="bg-red-50 p-2 rounded text-sm">
-          <p className="font-medium text-red-700">Rejected:</p>
-          <p className="text-red-600">{job.rejectionNote}</p>
-        </div>
-      )}
-
-      {job.issues?.length > 0 && (
-        <div className="bg-gray-50 p-2 rounded text-sm">
-          <p className="font-medium">Issue:</p>
-          <p className="text-gray-700">{job.issues[0].description}</p>
-        </div>
-      )}
-
-      <div className="flex flex-wrap gap-2 pt-2">
-        {isTeam && job.status === "pending" && !assignedTo && (
-          <button
-            onClick={handleClaim}
-            className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-          >
-            Claim
-          </button>
+        {job.issues?.length > 0 && (
+          <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded text-sm">
+            <p className="font-medium text-card-foreground">Issue:</p>
+            <p className="text-muted-foreground">{job.issues[0].description}</p>
+          </div>
         )}
 
-        {isTeam && job.status === "in_progress" && assignedTo === userId && (
-          <button
-            onClick={handleComplete}
-            className="px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700"
-          >
-            Complete
-          </button>
-        )}
-       <button
-  onClick={() => window.open(`/api/pdf/${job._id}`, "_blank")}
-  className="px-3 py-1.5 bg-gray-700 text-white rounded text-sm hover:bg-gray-800"
->
-  Download PDF
-</button>
-
-        {isAdmin && job.status === "completed" && (
-          <>
+        <div className="flex flex-wrap gap-2 pt-2">
+          {isTeam && job.status === "pending" && !assignedTo && (
             <button
-              onClick={handleAccept}
-              className="px-3 py-1.5 bg-green-700 text-white rounded text-sm hover:bg-green-800"
+              onClick={handleClaim}
+              className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
             >
-              Accept
+              Claim
             </button>
+          )}
+
+          {isTeam && job.status === "in_progress" && assignedTo === userId && (
             <button
-              onClick={handleReject}
-              className="px-3 py-1.5 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+              onClick={handleComplete}
+              className="px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700"
             >
-              Reject
+              Complete
             </button>
-          </>
-        )}
-      </div>
-    </div>
+          )}
+
+          <button
+            onClick={() => window.open(`/api/pdf/${job._id}`, "_blank")}
+            className="px-3 py-1.5 bg-gray-700 text-white rounded text-sm hover:bg-gray-800"
+          >
+            Download PDF
+          </button>
+
+          {isAdmin && job.status === "completed" && (
+            <>
+              <button
+                onClick={handleAccept}
+                className="px-3 py-1.5 bg-green-700 text-white rounded text-sm hover:bg-green-800"
+              >
+                Accept
+              </button>
+              <button
+                onClick={handleReject}
+                className="px-3 py-1.5 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+              >
+                Reject
+              </button>
+            </>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
