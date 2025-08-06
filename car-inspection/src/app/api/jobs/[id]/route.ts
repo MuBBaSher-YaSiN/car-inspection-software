@@ -18,6 +18,7 @@ export async function PATCH(
 
     await connectToDB();
     const body = await req.json();
+    //@ts-ignore
     const jobId = params.id;
 
     const updatePayload = {};

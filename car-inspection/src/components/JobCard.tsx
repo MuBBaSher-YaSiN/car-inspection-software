@@ -108,6 +108,12 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
             Complete
           </button>
         )}
+       <button
+  onClick={() => window.open(`/api/pdf/${job._id}`, "_blank")}
+  className="px-3 py-1.5 bg-gray-700 text-white rounded text-sm hover:bg-gray-800"
+>
+  Download PDF
+</button>
 
         {isAdmin && job.status === "completed" && (
           <>

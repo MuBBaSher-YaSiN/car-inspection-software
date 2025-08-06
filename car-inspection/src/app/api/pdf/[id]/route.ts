@@ -7,7 +7,10 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 
-export async function GET(_, { params }) {
+export async function GET(
+  req: Request,
+  context: { params?: { id?: string } } // mark optional to prevent type error
+) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -16,7 +19,14 @@ export async function GET(_, { params }) {
 
     await connectToDB();
 
-    const job = await Job.findById(params.id)
+    // ✅ Safely access the dynamic param
+    const id = context?.params?.id;
+
+    if (!id) {
+      return NextResponse.json({ error: "Job ID missing" }, { status: 400 });
+    }
+
+    const job = await Job.findById(id)
       .populate("assignedTo", "email")
       .lean();
 
@@ -26,11 +36,14 @@ export async function GET(_, { params }) {
 
     const pdfBuffer = await generateJobPDF(job);
 
+    const safeCustomerName =
+      job.customerName?.toString().trim().replace(/[^a-z0-9]/gi, "_").toLowerCase() || "unknown";
+
     return new NextResponse(pdfBuffer, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename=inspection-${params.id}.pdf`,
+        "Content-Disposition": `attachment; filename=inspection-${safeCustomerName}.pdf`,
       },
     });
   } catch (err) {
