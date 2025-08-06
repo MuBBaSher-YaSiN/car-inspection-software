@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Sparkles, Check, X, Download, Wrench, Car, User } from "lucide-react";
-
+import { cardVariants, buttonVariants, statusVariants } from "@/lib/animations";
 export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJobs: () => void }) {
   const { data: session } = useSession();
   const [isHovered, setIsHovered] = useState(false);
@@ -28,41 +28,7 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
     rejected: { bg: "bg-red-500/10", text: "text-red-500", border: "border-red-500/30" }
   };
 
-  // Animation variants
-  const cardVariants = {
-    initial: { y: 20, opacity: 0 },
-    animate: { 
-      y: 0, 
-      opacity: 1,
-      transition: { 
-        type: "spring",
-        stiffness: 100,
-        damping: 10
-      }
-    },
-    hover: { 
-      y: -5,
-      boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)"
-    }
-  };
-
-  const buttonVariants = {
-    hover: { scale: 1.05 },
-    tap: { scale: 0.95 }
-  };
-
-  const statusVariants = {
-    initial: { scale: 0.9, opacity: 0 },
-    animate: { 
-      scale: 1, 
-      opacity: 1,
-      transition: { 
-        type: "spring",
-        stiffness: 300
-      }
-    }
-  };
-
+  
   const handleClaim = async () => {
     setIsAnimating(true);
     const res = await fetch(`/api/jobs/${job._id}/claim`, { method: "PATCH" });

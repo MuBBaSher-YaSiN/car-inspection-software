@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Mail, AlertTriangle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { containerVariants, itemVariants} from "@/lib/animations";
+import { containerVariants, itemVariants, cardVariants, hoverVariants} from "@/lib/animations";
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -40,48 +40,6 @@ export default function LoginPage() {
       setError("Invalid email or password");
       setIsLoading(false);
     }
-  };
-
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    show: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 10
-      }
-    }
-  };
-
-  const cardVariants = {
-    hidden: { scale: 0.95, opacity: 0 },
-    show: {
-      scale: 1,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 200,
-        damping: 15
-      }
-    }
-  };
-
-  const hoverVariants = {
-    hover: { scale: 1.02 },
-    tap: { scale: 0.98 }
   };
 
   return (

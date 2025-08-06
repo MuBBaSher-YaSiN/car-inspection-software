@@ -38,3 +38,41 @@ export const itemVariants: Variants = {
     },
   },
 };
+
+  export const cardVariants: Variants = {
+    hidden: { scale: 0.95, opacity: 0 },
+    show: {
+      scale: 1,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 200,
+        damping: 15
+      }
+    }
+  };
+
+ export const hoverVariants: Variants = {
+    hover: { scale: 1.02 },
+    tap: { scale: 0.98 }
+  };
+ export const buttonVariants: Variants = {
+    hover: { scale: 1.05 },
+    tap: { scale: 0.95 }
+  };
+
+ export const statusVariants: Variants = {
+    initial: { scale: 0.9, opacity: 0 },
+    animate: { 
+      scale: 1, 
+      opacity: 1,
+      transition: { 
+        type: "spring",
+        stiffness: 300
+      }
+    }
+  };
+ export const underlineVariants: Variants = {
+    hidden: { width: 0 },
+    show: { width: "100%" }
+  };

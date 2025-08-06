@@ -35,29 +35,6 @@ export default function TeamDashboard() {
     fetchJobs();
   }, []);
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const titleVariants = {
-    hidden: { y: -20, opacity: 0 },
-    show: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-      },
-    },
-  };
-
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <motion.div

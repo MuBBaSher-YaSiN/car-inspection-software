@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Car, Wrench, UserCog, Home } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { containerVariants, itemVariants} from "@/lib/animations";
+import { containerVariants, itemVariants, underlineVariants} from "@/lib/animations";
 export default function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
@@ -34,34 +34,6 @@ export default function Navbar() {
     { href: '/admin/dashboard/post-job', label: 'Post Job', icon: Car, roles: ['admin'] },
     { href: '/admin/dashboard/add-user', label: 'Add User', icon: Home, roles: ['admin'] },
   ];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: -20, opacity: 0 },
-    show: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 20
-      }
-    }
-  };
-
-  const underlineVariants = {
-    hidden: { width: 0 },
-    show: { width: "100%" }
-  };
 
   return (
     <motion.header
