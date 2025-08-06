@@ -19,6 +19,7 @@
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.7.0",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.23.12",
     "init": "^0.1.2",
     "lucide-react": "^0.535.0",
     "mongoose": "^8.17.0",
