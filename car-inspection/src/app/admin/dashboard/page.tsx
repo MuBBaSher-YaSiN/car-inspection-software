@@ -1,13 +1,7 @@
-"use client";
+'use client';
 import JobCard from "@/components/JobCard";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Search, Filter, RefreshCw } from "lucide-react";
@@ -17,6 +11,7 @@ export default function AdminDashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [filtered, setFiltered] = useState<Job[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const fetchJobs = async () => {
     setIsRefreshing(true);
@@ -25,6 +20,7 @@ export default function AdminDashboard() {
     setJobs(data);
     setFiltered(data);
     setIsRefreshing(false);
+    setIsInitialLoad(false);
   };
 
   useEffect(() => {
@@ -65,21 +61,21 @@ export default function AdminDashboard() {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
-      },
-    },
+        staggerChildren: 0.1
+      }
+    }
   };
 
   const titleVariants = {
     hidden: { y: -20, opacity: 0 },
-    show: {
-      y: 0,
+    show: { 
+      y: 0, 
       opacity: 1,
       transition: {
         type: "spring",
-        stiffness: 100,
-      },
-    },
+        stiffness: 100
+      }
+    }
   };
 
   return (
@@ -91,36 +87,29 @@ export default function AdminDashboard() {
         className="space-y-6"
       >
         {/* Header with search */}
-        <motion.div
-          variants={titleVariants}
-          className="flex flex-col md:flex-row justify-between gap-4"
-        >
+        <motion.div variants={titleVariants} className="flex flex-col md:flex-row justify-between gap-4">
           <div>
             <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               All Jobs
             </h2>
-            <p className="text-muted-foreground">
-              Manage and monitor all service requests
-            </p>
+            <p className="text-muted-foreground">Manage and monitor all service requests</p>
           </div>
-
+          
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={fetchJobs}
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
-            <RefreshCw
-              className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
-            />
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
           </motion.button>
         </motion.div>
 
         {/* Search and filter */}
-        <motion.div
+        <motion.div 
           variants={titleVariants}
-          className="grid grid-cols-1 md:grid-cols-2 pb-3 gap-4"
+          className="grid grid-cols-1 md:grid-cols-2 pb-2 gap-4"
         >
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -130,12 +119,8 @@ export default function AdminDashboard() {
               className="pl-10 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
             />
           </div>
-
-          <Select
-            onValueChange={(value) =>
-              handleStatus(value === "all" ? "" : value)
-            }
-          >
+          
+          <Select onValueChange={(value) => handleStatus(value === "all" ? "" : value)}>
             <SelectTrigger className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-muted-foreground" />
@@ -154,8 +139,18 @@ export default function AdminDashboard() {
         </motion.div>
 
         {/* Jobs list */}
-        {filtered.length === 0 ? (
-          <motion.div
+        {isInitialLoad ? (
+          <motion.div 
+            variants={titleVariants}
+            className="flex flex-col items-center justify-center py-12 gap-4"
+          >
+            <div className="w-24 h-24 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full flex items-center justify-center">
+              <RefreshCw className="w-10 h-10 text-blue-500 dark:text-blue-400 animate-spin" />
+            </div>
+            <h3 className="text-xl font-semibold">Loading jobs...</h3>
+          </motion.div>
+        ) : filtered.length === 0 ? (
+          <motion.div 
             variants={titleVariants}
             className="flex flex-col items-center justify-center py-12 gap-4 text-center"
           >
@@ -164,12 +159,11 @@ export default function AdminDashboard() {
             </div>
             <h3 className="text-xl font-semibold">No jobs found</h3>
             <p className="text-muted-foreground max-w-md">
-              Try adjusting your search or filter to find what you're looking
-              for
+              Try adjusting your search or filter to find what you're looking for
             </p>
           </motion.div>
         ) : (
-          <motion.div
+          <motion.div 
             variants={containerVariants}
             className="grid grid-cols-1 gap-4"
           >

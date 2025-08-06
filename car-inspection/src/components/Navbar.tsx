@@ -4,14 +4,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Car, Wrench, UserCog, Home } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 export default function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [hoveredLink, setHoveredLink] = useState<string | null>(null);
+
+  const { data: session, status } = useSession();
+  const role = session?.user?.role;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,12 +25,16 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Return nothing while session is loading (optional)
+  if (status === 'loading') return null;
+
   const navLinks = [
-    { href: '/admin/dashboard', label: 'Admin Dashboard', icon: UserCog },
-    { href: '/team/dashboard', label: 'Team Dashboard', icon: Wrench },
+    { href: '/admin/dashboard', label: 'Admin Dashboard', icon: UserCog, roles: ['admin', 'team'] },
+    { href: '/team/dashboard', label: 'Team Dashboard', icon: Wrench, roles: ['admin', 'team'] },
+    { href: '/admin/dashboard/post-job', label: 'Post Job', icon: Car, roles: ['admin'] },
+    { href: '/admin/dashboard/add-user', label: 'Add User', icon: Home, roles: ['admin'] },
   ];
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -50,11 +58,6 @@ export default function Navbar() {
     }
   };
 
-  const hoverVariants = {
-    hover: { scale: 1.05 },
-    tap: { scale: 0.95 }
-  };
-
   const underlineVariants = {
     hidden: { width: 0 },
     show: { width: "100%" }
@@ -70,7 +73,7 @@ export default function Navbar() {
         scrolled ? "py-2 shadow-lg" : "py-4"
       )}
     >
-      <div className="container mx-auto px-4 flex items-center justify-between">
+      <div className="mx-auto px-4 flex items-center justify-between">
         <motion.div 
           className="flex items-center space-x-8"
           variants={containerVariants}
@@ -109,49 +112,51 @@ export default function Navbar() {
           </motion.div>
 
           <nav className="flex items-center space-x-6">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              const isActive = pathname.startsWith(link.href);
-              return (
-                <motion.div 
-                  key={link.href}
-                  variants={itemVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                  onMouseEnter={() => setHoveredLink(link.href)}
-                  onMouseLeave={() => setHoveredLink(null)}
-                >
-                  <Link
-                    href={link.href}
-                    className={cn(
-                      "relative flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors",
-                      isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                    )}
+            {navLinks
+              .filter((link) => link.roles.includes(role)) // ✅ only render links allowed for role
+              .map((link) => {
+                const Icon = link.icon;
+                const isActive = pathname.startsWith(link.href);
+                return (
+                  <motion.div 
+                    key={link.href}
+                    variants={itemVariants}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onMouseEnter={() => setHoveredLink(link.href)}
+                    onMouseLeave={() => setHoveredLink(null)}
                   >
-                    <motion.div
-                      animate={{ 
-                        rotate: hoveredLink === link.href ? 10 : 0,
-                        scale: hoveredLink === link.href ? 1.2 : 1
-                      }}
-                      transition={{ type: "spring", stiffness: 400 }}
+                    <Link
+                      href={link.href}
+                      className={cn(
+                        "relative flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors",
+                        isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                      )}
                     >
-                      <Icon className="w-5 h-5" />
-                    </motion.div>
-                    <span>{link.label}</span>
-                    
-                    {(isActive || hoveredLink === link.href) && (
-                      <motion.span 
-                        className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500"
-                        initial="hidden"
-                        animate="show"
-                        variants={underlineVariants}
-                        transition={{ duration: 0.3 }}
-                      />
-                    )}
-                  </Link>
-                </motion.div>
-              );
-            })}
+                      <motion.div
+                        animate={{ 
+                          rotate: hoveredLink === link.href ? 10 : 0,
+                          scale: hoveredLink === link.href ? 1.2 : 1
+                        }}
+                        transition={{ type: "spring", stiffness: 400 }}
+                      >
+                        <Icon className="w-5 h-5" />
+                      </motion.div>
+                      <span>{link.label}</span>
+                      
+                      {(isActive || hoveredLink === link.href) && (
+                        <motion.span 
+                          className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500"
+                          initial="hidden"
+                          animate="show"
+                          variants={underlineVariants}
+                          transition={{ duration: 0.3 }}
+                        />
+                      )}
+                    </Link>
+                  </motion.div>
+                );
+              })}
           </nav>
         </motion.div>
 
