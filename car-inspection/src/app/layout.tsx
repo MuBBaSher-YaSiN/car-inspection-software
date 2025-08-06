@@ -16,7 +16,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <ReduxProvider store={store}>
             <ThemeProvider> {/*wrapping app with theme provider */}
               <Navbar />
+              <div className="mt-16">
               {children}
+              </div>
             </ThemeProvider>
           </ReduxProvider>
         </SessionProvider>
