@@ -9,8 +9,6 @@ export async function POST(req: Request) {
   try {
     await connectToDB();
     const body = await req.json();
-    console.log("Received body:", body);
-
     const parsed = jobSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
@@ -18,19 +16,16 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-// @ts-ignore
+    //@ts-ignore
     const newJob = await Job.create(parsed.data);
     return NextResponse.json(newJob, { status: 201 });
-  }  catch (error: unknown) {
-  console.error("Job creation error:", error);
-  const message = error instanceof Error ? error.message : "Unknown error";
-  return NextResponse.json(
-    { error: "Job creation failed", details: message },
-    { status: 500 }
-  );
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Job creation failed", details: error instanceof Error ? error.message : error },
+      { status: 500 }
+    );
+  }
 }
-}
-
 
 export async function GET(req: Request) {
   try {

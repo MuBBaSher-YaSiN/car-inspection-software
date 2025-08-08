@@ -1,17 +1,18 @@
-// src/models/Job.ts
+
 import mongoose, { Schema, models } from "mongoose";
 
-const IssueSchema = new Schema({
-  description: { type: String, required: true },
-  checklist: {
-    brakes: { type: Boolean, default: false },
-    lights: { type: Boolean, default: false },
-    tires: { type: Boolean, default: false },
-    engine: { type: Boolean, default: false },
-    other: String,
-  },
+const SubIssueSchema = new Schema({
+  key: String,
+  label: String,
+  severity: { type: String, enum: ["safe", "failed", "needs_attention", "other"] },
+  comment: String,
   images: [String], // Cloudinary URLs
-  comments: String,
+});
+
+const InspectionTabSchema = new Schema({
+  key: String,
+  label: String,
+  subIssues: [SubIssueSchema],
 });
 
 const JobSchema = new Schema(
@@ -20,13 +21,12 @@ const JobSchema = new Schema(
     customerName: { type: String, required: true },
     engineNumber: { type: String },
     assignedTo: { type: Schema.Types.ObjectId, ref: "User" },
-    // createdBy: { type: Schema.Types.ObjectId, ref: "User", required: false },
     status: {
       type: String,
       enum: ["pending", "in_progress", "completed", "rejected"],
       default: "pending",
     },
-    issues: [IssueSchema],
+    inspectionTabs: [InspectionTabSchema],
     rejectionNote: String,
   },
   { timestamps: true }

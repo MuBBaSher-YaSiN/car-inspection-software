@@ -1,16 +1,17 @@
-// src/types/job.ts
+export type Severity = "safe" | "failed" | "needs_attention" | "other";
 
-export interface Issue {
-  description: string;
-  checklist: {
-    brakes: boolean;
-    lights: boolean;
-    tires: boolean;
-    engine: boolean;
-    other?: string;
-  };
+export interface SubIssue {
+  key: string;
+  label: string;
+  severity: Severity;
+  comment?: string;
   images: string[];
-  comments?: string;
+}
+
+export interface InspectionTab {
+  key: string;
+  label: string;
+  subIssues: SubIssue[];
 }
 
 export interface Job {
@@ -24,7 +25,7 @@ export interface Job {
     email: string;
   } | null;
   rejectionNote?: string;
-  issues: Issue[];
+  inspectionTabs: InspectionTab[];
   createdAt?: string;
   updatedAt?: string;
 }
