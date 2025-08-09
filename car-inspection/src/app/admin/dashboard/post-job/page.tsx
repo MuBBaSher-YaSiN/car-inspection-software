@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { FiUpload } from 'react-icons/fi';
 import { inspectionTabs } from '@/config/inspectionTabs';
 import type { Job, Severity } from '@/types/job';
@@ -27,23 +26,46 @@ export default function PostJobPage() {
     })),
   });
 
-  const handleFileChange = (tabKey: string, issueKey: string, files: FileList | null) => {
+  // Upload file to Cloudinary
+  const uploadToCloudinary = async (file: File) => {
+    const url = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '');
+    
+    const res = await fetch(url, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Cloudinary upload failed');
+    const data = await res.json();
+    return data.secure_url as string; // return URL
+  };
+
+  const handleFileChange = async (tabKey: string, issueKey: string, files: FileList | null) => {
     if (!files) return;
-    setForm(prev => ({
-      ...prev,
-      inspectionTabs: prev.inspectionTabs.map(tab =>
-        tab.key === tabKey
-          ? {
-              ...tab,
-              subIssues: tab.subIssues.map(issue =>
-                issue.key === issueKey
-                  ? { ...issue, images: Array.from(files).map(f => URL.createObjectURL(f)) }
-                  : issue
-              ),
-            }
-          : tab
-      ),
-    }));
+    try {
+      const uploadedUrls = await Promise.all(
+        Array.from(files).map(file => uploadToCloudinary(file))
+      );
+      setForm(prev => ({
+        ...prev,
+        inspectionTabs: prev.inspectionTabs.map(tab =>
+          tab.key === tabKey
+            ? {
+                ...tab,
+                subIssues: tab.subIssues.map(issue =>
+                  issue.key === issueKey
+                    ? { ...issue, images: [...issue.images, ...uploadedUrls] }
+                    : issue
+                ),
+              }
+            : tab
+        ),
+      }));
+    } catch (error) {
+      console.error('Image upload failed', error);
+    }
   };
 
   const handleSubmit = async () => {
@@ -63,12 +85,41 @@ export default function PostJobPage() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 space-y-6">
+      {/* Job Details */}
+      <div className="bg-white rounded shadow p-4 space-y-4">
+        <h2 className="text-lg font-bold">Job Details</h2>
+        <input
+          type="text"
+          placeholder="Car Number"
+          value={form.carNumber}
+          onChange={e => setForm({ ...form, carNumber: e.target.value })}
+          className="w-full border p-2 rounded"
+        />
+        <input
+          type="text"
+          placeholder="Customer Name"
+          value={form.customerName}
+          onChange={e => setForm({ ...form, customerName: e.target.value })}
+          className="w-full border p-2 rounded"
+        />
+        <input
+          type="text"
+          placeholder="Engine Number"
+          value={form.engineNumber}
+          onChange={e => setForm({ ...form, engineNumber: e.target.value })}
+          className="w-full border p-2 rounded"
+        />
+      </div>
+
+      {/* Tabs */}
       <div className="flex space-x-2 mb-4">
         {inspectionTabs.map(tab => (
           <button
             key={tab.key}
-            className={`px-4 py-2 rounded ${activeTab === tab.key ? 'bg-indigo-600 text-white' : 'bg-gray-200'}`}
+            className={`px-4 py-2 rounded ${
+              activeTab === tab.key ? 'bg-indigo-600 text-white' : 'bg-gray-200'
+            }`}
             onClick={() => setActiveTab(tab.key)}
           >
             {tab.label}
@@ -76,6 +127,7 @@ export default function PostJobPage() {
         ))}
       </div>
 
+      {/* Tab Content */}
       {form.inspectionTabs
         .filter(tab => tab.key === activeTab)
         .map(tab => (
@@ -83,6 +135,7 @@ export default function PostJobPage() {
             {tab.subIssues.map(issue => (
               <div key={issue.key} className="p-4 bg-white rounded shadow">
                 <h3 className="font-bold mb-2">{issue.label}</h3>
+
                 <select
                   value={issue.severity}
                   onChange={e =>
@@ -93,7 +146,9 @@ export default function PostJobPage() {
                           ? {
                               ...t,
                               subIssues: t.subIssues.map(i =>
-                                i.key === issue.key ? { ...i, severity: e.target.value as Severity } : i
+                                i.key === issue.key
+                                  ? { ...i, severity: e.target.value as Severity }
+                                  : i
                               ),
                             }
                           : t
@@ -119,7 +174,9 @@ export default function PostJobPage() {
                           ? {
                               ...t,
                               subIssues: t.subIssues.map(i =>
-                                i.key === issue.key ? { ...i, comment: e.target.value } : i
+                                i.key === issue.key
+                                  ? { ...i, comment: e.target.value }
+                                  : i
                               ),
                             }
                           : t
@@ -152,6 +209,7 @@ export default function PostJobPage() {
           </div>
         ))}
 
+      {/* Submit */}
       <button
         onClick={handleSubmit}
         className="mt-6 bg-indigo-600 text-white px-4 py-2 rounded"

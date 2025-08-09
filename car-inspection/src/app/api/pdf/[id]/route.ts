@@ -1,55 +1,36 @@
 // @ts-nocheck
-
 import { connectToDB } from "@/lib/db";
 import { Job } from "@/models/Job";
-import { generateJobPDF } from "@/lib/pdf";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
+import { generateJobPDF } from "@/lib/pdf";
 
-export async function GET(
-  req: Request,
-  context: { params?: { id?: string } } // mark optional to prevent type error
-) {
+export async function GET(req, { params }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     await connectToDB();
-
-    //  Safely access the dynamic param
-    const id = context?.params?.id;
-
-    if (!id) {
-      return NextResponse.json({ error: "Job ID missing" }, { status: 400 });
-    }
-
-    const job = await Job.findById(id)
-      .populate("assignedTo", "email")
-      .lean();
+    const job = await Job.findById(params.id).lean();
 
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    const pdfBuffer = await generateJobPDF(job);
+    const pdfBytes = await generateJobPDF(job);
 
-    const safeCustomerName =
-      job.customerName?.toString().trim().replace(/[^a-z0-9]/gi, "_").toLowerCase() || "unknown";
+    // Create safe filename from customer name
+    const safeName = job.customerName
+      ? job.customerName.replace(/[^a-z0-9]/gi, "_").toLowerCase()
+      : "unknown";
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(pdfBytes, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename=inspection-${safeCustomerName}.pdf`,
+        "Content-Disposition": `attachment; filename="job-${safeName}.pdf"`,
       },
     });
-  } catch (err) {
-    console.error(" PDF generation failed:", err);
+  } catch (error) {
+    console.error("PDF generation error:", error);
     return NextResponse.json(
-      { error: "PDF generation failed" },
+      { error: "Failed to generate PDF" },
       { status: 500 }
     );
   }
