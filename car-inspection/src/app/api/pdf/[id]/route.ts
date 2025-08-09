@@ -3,7 +3,8 @@ import { connectToDB } from "@/lib/db";
 import { Job } from "@/models/Job";
 import { NextResponse } from "next/server";
 import { generateJobPDF } from "@/lib/pdf";
-
+// src/pages/api/pdf.ts
+console.log("📄 PDF API route START", new Date().toISOString());
 export async function GET(req, { params }) {
   try {
     await connectToDB();

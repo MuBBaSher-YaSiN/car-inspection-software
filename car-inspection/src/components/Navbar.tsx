@@ -141,7 +141,7 @@ export default function Navbar() {
             variants={itemVariants}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="hidden lg:block"
+            className="hidden md:block"
           >
             <ThemeToggle />
           </motion.div>

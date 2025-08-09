@@ -34,8 +34,6 @@ export async function generateJobPDF(job: Job): Promise<Uint8Array> {
     `Car Number: ${job.carNumber || "-"}`,
     `Customer: ${job.customerName || "-"}`,
     `Engine Number: ${job.engineNumber || "-"}`,
-    `Status: ${job.status}`,
-    `Assigned To: ${job.assignedTo?.email || "Unassigned"}`,
   ];
 
   basicInfo.forEach(line => {
