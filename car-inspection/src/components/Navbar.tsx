@@ -6,13 +6,15 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { Car, Wrench, UserCog, Home } from 'lucide-react';
+import { Car, Wrench, UserCog, Home, Menu, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { containerVariants, itemVariants, underlineVariants} from "@/lib/animations";
+import { containerVariants, itemVariants, underlineVariants } from "@/lib/animations";
+
 export default function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [hoveredLink, setHoveredLink] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const { data: session, status } = useSession();
   const role = session?.user?.role;
@@ -25,7 +27,6 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Return nothing while session is loading (optional)
   if (status === 'loading') return null;
 
   const navLinks = [
@@ -46,21 +47,22 @@ export default function Navbar() {
       )}
     >
       <div className="mx-auto px-4 flex items-center justify-between">
-        <motion.div 
+        {/* Left Section */}
+        <motion.div
           className="flex items-center space-x-8"
           variants={containerVariants}
           initial="hidden"
           animate="show"
         >
           <motion.div variants={itemVariants}>
-            <Link 
-              href="/" 
-              className="flex items-center gap-2 text-xl font-bold"
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-xl font-bold relative"
               onMouseEnter={() => setHoveredLink('home')}
               onMouseLeave={() => setHoveredLink(null)}
             >
               <motion.div
-                animate={{ 
+                animate={{
                   rotate: hoveredLink === 'home' ? 10 : 0,
                   scale: hoveredLink === 'home' ? 1.1 : 1
                 }}
@@ -72,7 +74,7 @@ export default function Navbar() {
                 AutoSure
               </span>
               {hoveredLink === 'home' && (
-                <motion.span 
+                <motion.span
                   className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500"
                   initial="hidden"
                   animate="show"
@@ -83,14 +85,15 @@ export default function Navbar() {
             </Link>
           </motion.div>
 
-          <nav className="flex items-center space-x-6">
+          {/* Desktop Nav */}
+          <nav className="hidden lg:flex items-center space-x-6">
             {navLinks
-              .filter((link) => link.roles.includes(role)) // ✅ only render links allowed for role
+              .filter((link) => link.roles.includes(role))
               .map((link) => {
                 const Icon = link.icon;
                 const isActive = pathname.startsWith(link.href);
                 return (
-                  <motion.div 
+                  <motion.div
                     key={link.href}
                     variants={itemVariants}
                     whileHover={{ scale: 1.05 }}
@@ -106,7 +109,7 @@ export default function Navbar() {
                       )}
                     >
                       <motion.div
-                        animate={{ 
+                        animate={{
                           rotate: hoveredLink === link.href ? 10 : 0,
                           scale: hoveredLink === link.href ? 1.2 : 1
                         }}
@@ -115,9 +118,9 @@ export default function Navbar() {
                         <Icon className="w-5 h-5" />
                       </motion.div>
                       <span>{link.label}</span>
-                      
+
                       {(isActive || hoveredLink === link.href) && (
-                        <motion.span 
+                        <motion.span
                           className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500"
                           initial="hidden"
                           animate="show"
@@ -132,14 +135,60 @@ export default function Navbar() {
           </nav>
         </motion.div>
 
-        <motion.div 
-          variants={itemVariants}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <ThemeToggle />
-        </motion.div>
+        {/* Right Section */}
+        <div className="flex items-center gap-4">
+          <motion.div
+            variants={itemVariants}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="hidden lg:block"
+          >
+            <ThemeToggle />
+          </motion.div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="lg:hidden p-2 rounded-md hover:bg-accent"
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
+            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileOpen && (
+        <motion.nav
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          className="lg:hidden bg-background border-t px-4 pb-4"
+        >
+          {navLinks
+            .filter((link) => link.roles.includes(role))
+            .map((link) => {
+              const Icon = link.icon;
+              const isActive = pathname.startsWith(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    "flex items-center gap-2 py-2 text-sm font-medium transition-colors",
+                    isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Icon className="w-5 h-5" />
+                  {link.label}
+                </Link>
+              );
+            })}
+          <div className="mt-4">
+            <ThemeToggle />
+          </div>
+        </motion.nav>
+      )}
     </motion.header>
   );
 }

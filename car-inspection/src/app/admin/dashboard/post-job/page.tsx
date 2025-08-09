@@ -26,20 +26,16 @@ export default function PostJobPage() {
     })),
   });
 
-  // Upload file to Cloudinary
   const uploadToCloudinary = async (file: File) => {
     const url = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`;
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '');
     
-    const res = await fetch(url, {
-      method: 'POST',
-      body: formData,
-    });
+    const res = await fetch(url, { method: 'POST', body: formData });
     if (!res.ok) throw new Error('Cloudinary upload failed');
     const data = await res.json();
-    return data.secure_url as string; // return URL
+    return data.secure_url as string;
   };
 
   const handleFileChange = async (tabKey: string, issueKey: string, files: FileList | null) => {
@@ -85,40 +81,42 @@ export default function PostJobPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Job Details */}
-      <div className="bg-white rounded shadow p-4 space-y-4">
-        <h2 className="text-lg font-bold">Job Details</h2>
+      <div className="bg-white dark:bg-gray-800 rounded shadow p-4 space-y-4">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Job Details</h2>
         <input
           type="text"
           placeholder="Car Number"
           value={form.carNumber}
           onChange={e => setForm({ ...form, carNumber: e.target.value })}
-          className="w-full border p-2 rounded"
+          className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         />
         <input
           type="text"
           placeholder="Customer Name"
           value={form.customerName}
           onChange={e => setForm({ ...form, customerName: e.target.value })}
-          className="w-full border p-2 rounded"
+          className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         />
         <input
           type="text"
           placeholder="Engine Number"
           value={form.engineNumber}
           onChange={e => setForm({ ...form, engineNumber: e.target.value })}
-          className="w-full border p-2 rounded"
+          className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         />
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-2 mb-4">
+      <div className="flex flex-wrap space-x-2 mb-4">
         {inspectionTabs.map(tab => (
           <button
             key={tab.key}
-            className={`px-4 py-2 rounded ${
-              activeTab === tab.key ? 'bg-indigo-600 text-white' : 'bg-gray-200'
+            className={`px-4 py-2 my-2 rounded transition-colors ${
+              activeTab === tab.key
+                ? 'bg-indigo-600 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
             }`}
             onClick={() => setActiveTab(tab.key)}
           >
@@ -133,8 +131,8 @@ export default function PostJobPage() {
         .map(tab => (
           <div key={tab.key} className="space-y-4">
             {tab.subIssues.map(issue => (
-              <div key={issue.key} className="p-4 bg-white rounded shadow">
-                <h3 className="font-bold mb-2">{issue.label}</h3>
+              <div key={issue.key} className="p-4 bg-white dark:bg-gray-800 rounded shadow">
+                <h3 className="font-bold mb-2 text-gray-900 dark:text-white">{issue.label}</h3>
 
                 <select
                   value={issue.severity}
@@ -155,7 +153,7 @@ export default function PostJobPage() {
                       ),
                     }))
                   }
-                  className="mb-2 border p-2 rounded w-full"
+                  className="mb-2 border border-gray-300 dark:border-gray-600 p-2 rounded w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="safe">Safe</option>
                   <option value="failed">Failed</option>
@@ -183,10 +181,10 @@ export default function PostJobPage() {
                       ),
                     }))
                   }
-                  className="w-full border p-2 rounded mb-2"
+                  className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded mb-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
 
-                <label className="flex items-center space-x-2 cursor-pointer">
+                <label className="flex items-center space-x-2 cursor-pointer text-gray-900 dark:text-white">
                   <FiUpload />
                   <span>Upload Images</span>
                   <input
@@ -200,7 +198,12 @@ export default function PostJobPage() {
                 {issue.images.length > 0 && (
                   <div className="flex space-x-2 mt-2">
                     {issue.images.map((src, idx) => (
-                      <img key={idx} src={src} alt="" className="w-20 h-20 object-cover rounded" />
+                      <img
+                        key={idx}
+                        src={src}
+                        alt=""
+                        className="w-20 h-20 object-cover rounded border border-gray-300 dark:border-gray-600"
+                      />
                     ))}
                   </div>
                 )}
@@ -212,7 +215,7 @@ export default function PostJobPage() {
       {/* Submit */}
       <button
         onClick={handleSubmit}
-        className="mt-6 bg-indigo-600 text-white px-4 py-2 rounded"
+        className="mt-6 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-800 text-white px-4 py-2 rounded transition-colors"
       >
         Submit Job
       </button>
