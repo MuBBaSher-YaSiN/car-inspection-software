@@ -82,6 +82,25 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
     setIsAnimating(false);
   };
 
+const handleDelete = async () => {
+  if (!confirm("Are you sure you want to delete this job?")) return;
+  setIsAnimating(true);
+  const res = await fetch(`/api/jobs/${job._id}`, { method: "DELETE" });
+  if (res.ok) {
+    alert("Job deleted successfully");
+    setTimeout(() => refreshJobs(), 800);
+  } else {
+    const data = await res.json();
+    alert("Error: " + (data?.error || "Something went wrong"));
+  }
+  setIsAnimating(false);
+};
+
+const handleEdit = () => {
+  // Navigate to an edit page — which will be a modified PostJobPage
+  window.location.href = `/admin/dashboard/edit-job/${job._id}`;
+};
+
   // Particle effect for status changes
   const renderParticles = () => {
     if (!isAnimating) return null;
@@ -310,6 +329,31 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
                 </motion.button>
               </>
             )}
+            {isAdmin && (
+  <>
+    <motion.button
+      variants={buttonVariants}
+      whileHover="hover"
+      whileTap="tap"
+      onClick={handleEdit}
+      className="px-4 py-2 bg-gradient-to-r from-green-700 to-green-600 text-white rounded-lg text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
+    >
+      <Check className="w-4 h-4" />
+      Edit
+    </motion.button>
+    <motion.button
+      variants={buttonVariants}
+      whileHover="hover"
+      whileTap="tap"
+      onClick={handleDelete}
+      className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
+    >
+      <X className="w-4 h-4" />
+      Delete
+    </motion.button>
+  </>
+)}
+
           </motion.div>
         </CardContent>
       </Card>
