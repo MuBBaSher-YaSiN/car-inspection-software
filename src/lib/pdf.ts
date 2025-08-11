@@ -4,30 +4,70 @@ import type { Job } from "@/types/job";
 import fs from "fs";
 import sharp from "sharp";
 
+/**
+ * Helper: Wrap text to fit within maxWidth
+ */
+function wrapText(
+  text: string,
+  font: any,
+  fontSize: number,
+  maxWidth: number
+): string[] {
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let currentLine = "";
+
+  for (const word of words) {
+    const testLine = currentLine ? currentLine + " " + word : word;
+    const width = font.widthOfTextAtSize(testLine, fontSize);
+    if (width > maxWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+  return lines;
+}
+
 export async function generateJobPDF(job: Job): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
-  let page = pdfDoc.addPage([595, 842]); // A4
+  let page = pdfDoc.addPage([595, 842]); // A4 size
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const { height } = page.getSize();
+  const { height, width } = page.getSize();
 
   let y = height - 50;
   const marginX = 50;
   const lineHeight = 18;
+  const usableWidth = width - marginX * 2 - 20; // page width minus margins & indent
 
   const addPage = () => {
     page = pdfDoc.addPage([595, 842]);
     y = page.getSize().height - 50;
   };
 
+  /**
+   * Draws multi-line wrapped text
+   */
+  const drawWrappedText = (
+    text: string,
+    x: number,
+    fontSize: number,
+    color = rgb(0, 0, 0)
+  ) => {
+    const lines = wrapText(text, font, fontSize, usableWidth - (x - marginX));
+    for (const line of lines) {
+      if (y < 60) addPage();
+      page.drawText(line, { x, y, size: fontSize, font, color });
+      y -= lineHeight;
+    }
+  };
+
   // ===== Title =====
-  page.drawText(`Car Inspection Report`, {
-    x: marginX,
-    y,
-    size: 20,
-    font,
-    color: rgb(0, 0, 0),
-  });
-  y -= 30;
+  drawWrappedText(`Car Inspection Report`, marginX, 20);
+
+  y -= 10;
 
   // ===== Basic Info =====
   const basicInfo = [
@@ -35,47 +75,19 @@ export async function generateJobPDF(job: Job): Promise<Uint8Array> {
     `Customer: ${job.customerName || "-"}`,
     `Engine Number: ${job.engineNumber || "-"}`,
   ];
-
-  basicInfo.forEach(line => {
-    if (y < 60) addPage();
-    page.drawText(line, { x: marginX, y, size: 12, font });
-    y -= lineHeight;
-  });
+  basicInfo.forEach(line => drawWrappedText(line, marginX, 12));
 
   y -= 10;
 
   // ===== Tabs & SubIssues =====
   for (const tab of job.inspectionTabs || []) {
-    if (y < 60) addPage();
-    page.drawText(tab.label, {
-      x: marginX,
-      y,
-      size: 14,
-      font,
-      color: rgb(0.1, 0.1, 0.7),
-    });
-    y -= lineHeight;
+    drawWrappedText(tab.label, marginX, 14, rgb(0.1, 0.1, 0.7));
 
     for (const issue of tab.subIssues || []) {
-      if (y < 60) addPage();
-      page.drawText(`- ${issue.label} [${issue.severity}]`, {
-        x: marginX + 10,
-        y,
-        size: 12,
-        font,
-      });
-      y -= lineHeight;
+      drawWrappedText(`- ${issue.label} [${issue.severity}]`, marginX + 10, 12);
 
       if (issue.comment) {
-        if (y < 60) addPage();
-        page.drawText(`Comment: ${issue.comment}`, {
-          x: marginX + 20,
-          y,
-          size: 10,
-          font,
-          color: rgb(0.3, 0.3, 0.3),
-        });
-        y -= lineHeight;
+        drawWrappedText(`Comment: ${issue.comment}`, marginX + 20, 10, rgb(0.3, 0.3, 0.3));
       }
 
       // ===== Images =====
@@ -114,10 +126,8 @@ export async function generateJobPDF(job: Job): Promise<Uint8Array> {
             const imgWidth = 100;
             const imgHeight = (image.height / image.width) * imgWidth;
 
-            // Auto-wrap images
-            if (y - imgHeight < 50) {
-              addPage();
-            }
+            // Ensure space before image
+            if (y - imgHeight < 50) addPage();
 
             page.drawImage(image, {
               x: marginX + 20,
