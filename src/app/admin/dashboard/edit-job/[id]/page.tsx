@@ -21,11 +21,15 @@ export default function EditJobPage() {
         const job = await res.json();
         // Merge with inspectionTabs so missing fields are added
         const mergedTabs = baseTabs.map((tab) => {
-          const existingTab = job.inspectionTabs.find((t: any) => t.key === tab.key);
+          const existingTab = job.inspectionTabs.find(
+            (t: any) => t.key === tab.key
+          );
           return {
             ...tab,
             subIssues: tab.subIssues.map((issue) => {
-              const existingIssue = existingTab?.subIssues.find((i: any) => i.key === issue.key);
+              const existingIssue = existingTab?.subIssues.find(
+                (i: any) => i.key === issue.key
+              );
               return {
                 ...issue,
                 severity: existingIssue?.severity || "ok",
@@ -194,7 +198,8 @@ export default function EditJobPage() {
                                       i.key === issue.key
                                         ? {
                                             ...i,
-                                            severity: e.target.value as Severity,
+                                            severity: e.target
+                                              .value as Severity,
                                           }
                                         : i
                                     ),
@@ -238,7 +243,7 @@ export default function EditJobPage() {
                   }
                   className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded mb-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
-{/* 
+                {/* 
                 <label className="flex items-center space-x-2 cursor-pointer text-gray-900 dark:text-white">
                   <FiUpload />
                   <span>Upload Images</span>

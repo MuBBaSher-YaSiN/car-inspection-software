@@ -73,7 +73,7 @@ export async function generateJobPDF(job: Job): Promise<Uint8Array> {
     `Customer: ${job.customerName || "-"}`,
     `Engine Number: ${job.engineNumber || "-"}`,
   ];
-  basicInfo.forEach(line => drawWrappedText(line, marginX, 12));
+  basicInfo.forEach((line) => drawWrappedText(line, marginX, 12));
 
   y -= 10;
 
