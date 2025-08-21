@@ -3,9 +3,9 @@ import { z } from "zod";
 export const subIssueSchema = z.object({
   key: z.string(),
   label: z.string(),
-  severity: z.enum(["safe", "failed", "needs_attention", "other"]),
+  severity: z.enum(["minor", "major", "ok"]),
   comment: z.string().optional(),
-  images: z.array(z.string()).optional(),
+  // images: z.array(z.string()).optional(),
 });
 
 export const inspectionTabSchema = z.object({

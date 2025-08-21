@@ -4,9 +4,9 @@ import mongoose, { Schema, models } from "mongoose";
 const SubIssueSchema = new Schema({
   key: String,
   label: String,
-  severity: { type: String, enum: ["safe", "failed", "needs_attention", "other"] },
+  severity: { type: String, enum: ["minor", "major", "ok"] },
   comment: String,
-  images: [String], // Cloudinary URLs
+  // images: [String], 
 });
 
 const InspectionTabSchema = new Schema({

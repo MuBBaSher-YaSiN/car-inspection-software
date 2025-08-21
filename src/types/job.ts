@@ -1,11 +1,11 @@
-export type Severity = "safe" | "failed" | "needs_attention" | "other";
+export type Severity = "minor" | "major" | "ok";
 
 export interface SubIssue {
   key: string;
   label: string;
   severity: Severity;
   comment?: string;
-  images: string[];
+  // images: string[];
 }
 
 export interface InspectionTab {

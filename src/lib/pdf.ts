@@ -1,8 +1,6 @@
 // lib/pdf.ts
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import type { Job } from "@/types/job";
-import fs from "fs";
-import sharp from "sharp";
 
 /**
  * Helper: Wrap text to fit within maxWidth
@@ -40,7 +38,7 @@ export async function generateJobPDF(job: Job): Promise<Uint8Array> {
   let y = height - 50;
   const marginX = 50;
   const lineHeight = 18;
-  const usableWidth = width - marginX * 2 - 20; // page width minus margins & indent
+  const usableWidth = width - marginX * 2 - 20;
 
   const addPage = () => {
     page = pdfDoc.addPage([595, 842]);
@@ -87,60 +85,12 @@ export async function generateJobPDF(job: Job): Promise<Uint8Array> {
       drawWrappedText(`- ${issue.label} [${issue.severity}]`, marginX + 10, 12);
 
       if (issue.comment) {
-        drawWrappedText(`Comment: ${issue.comment}`, marginX + 20, 10, rgb(0.3, 0.3, 0.3));
-      }
-
-      // ===== Images =====
-      if (issue.images && issue.images.length > 0) {
-        for (const imgSrc of issue.images) {
-          try {
-            let imgBytes: Uint8Array;
-
-            if (imgSrc.startsWith("data:image/")) {
-              imgBytes = Buffer.from(imgSrc.split(",")[1], "base64");
-            } else if (imgSrc.startsWith("http")) {
-              const res = await fetch(imgSrc);
-              imgBytes = Buffer.from(await res.arrayBuffer());
-            } else {
-              imgBytes = await fs.promises.readFile(imgSrc);
-            }
-
-            // Convert WEBP to PNG
-            if (imgSrc.includes(".webp") || imgSrc.startsWith("data:image/webp")) {
-              imgBytes = await sharp(imgBytes).png().toBuffer();
-            }
-
-            // Decide embed method
-            let image;
-            if (
-              imgSrc.includes(".jpg") ||
-              imgSrc.includes(".jpeg") ||
-              imgSrc.startsWith("data:image/jpeg")
-            ) {
-              image = await pdfDoc.embedJpg(imgBytes);
-            } else {
-              image = await pdfDoc.embedPng(imgBytes);
-            }
-
-            // Image sizing
-            const imgWidth = 100;
-            const imgHeight = (image.height / image.width) * imgWidth;
-
-            // Ensure space before image
-            if (y - imgHeight < 50) addPage();
-
-            page.drawImage(image, {
-              x: marginX + 20,
-              y: y - imgHeight,
-              width: imgWidth,
-              height: imgHeight,
-            });
-
-            y -= imgHeight + 10;
-          } catch (err) {
-            console.error("Image embedding failed for", imgSrc, err);
-          }
-        }
+        drawWrappedText(
+          `Comment: ${issue.comment}`,
+          marginX + 20,
+          10,
+          rgb(0.3, 0.3, 0.3)
+        );
       }
 
       y -= 5;
