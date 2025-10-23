@@ -9,6 +9,8 @@ import { useEffect, useState } from 'react';
 import { Car, Wrench, UserCog, Home, Menu, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { containerVariants, itemVariants, underlineVariants } from "@/lib/animations";
+import logo from "../../logo.png"
+import Image from 'next/image';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -54,7 +56,7 @@ export default function Navbar() {
           initial="hidden"
           animate="show"
         >
-          <motion.div variants={itemVariants}>
+          {/* <motion.div variants={itemVariants}>
             <Link
               href="/"
               className="flex items-center gap-2 text-xl font-bold relative"
@@ -71,7 +73,7 @@ export default function Navbar() {
                 <Car className="w-6 h-6 text-primary" />
               </motion.div>
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                AutoSure
+                Car Inspection
               </span>
               {hoveredLink === 'home' && (
                 <motion.span
@@ -83,7 +85,46 @@ export default function Navbar() {
                 />
               )}
             </Link>
-          </motion.div>
+          </motion.div> */}
+
+        <motion.div variants={itemVariants}>
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-xl font-bold relative"
+            onMouseEnter={() => setHoveredLink('home')}
+            onMouseLeave={() => setHoveredLink(null)}
+          >
+            <motion.div
+              animate={{
+                scale: hoveredLink === 'home' ? 1.05 : 1
+              }}
+              transition={{ type: "spring", stiffness: 400 }}
+              className="flex items-center gap-2"
+            >
+              <Image
+                src={logo}
+                alt="AutoSure Logo"
+                width={36}
+                height={36}
+                className="rounded-md"
+              />
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Car Inspection
+              </span>
+            </motion.div>
+
+            {hoveredLink === 'home' && (
+              <motion.span
+                className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500"
+                initial="hidden"
+                animate="show"
+                variants={underlineVariants}
+                transition={{ duration: 0.3 }}
+              />
+            )}
+          </Link>
+        </motion.div>
+
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center space-x-6">
