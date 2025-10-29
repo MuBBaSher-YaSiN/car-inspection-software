@@ -1,14 +1,14 @@
 export const inspectionTabs = [
-{
-    key: "History",
-    label: "History",
-     subIssues: [
-      { key: "vinInspection", label: "VIN Inspection" },
-      { key: "serviceRecalls", label: "Service Recalls Performed" },
-      { key: "vehicleHistory", label: "Vehicle History Obtained" }, 
-      { key: "scheduledMaintenance", label: "Scheduled Maintenance Performed" },
-     ],
-},
+// {
+//     key: "History",
+//     label: "History",
+//      subIssues: [
+//       { key: "vinInspection", label: "VIN Inspection" },
+//       { key: "serviceRecalls", label: "Service Recalls Performed" },
+//       { key: "vehicleHistory", label: "Vehicle History Obtained" }, 
+//       { key: "scheduledMaintenance", label: "Scheduled Maintenance Performed" },
+//      ],
+// },
  {
     key: "exterior",
     label: "Exterior",
@@ -184,16 +184,16 @@ export const inspectionTabs = [
       { key: "obdCheck", label: "On Board Diagnostics Check (OBD)" },
     ],
   },
-  {
-    key: "convenience",
-    label: "Convenience",
-    subIssues: [
-      { key: "ownersGuide", label: "Owner’s Guide" },
-      { key: "keysRemotes", label: "Keys and Remote Controls" },
-      { key: "universalTransmitter", label: "Universal Transmitter (Garage Door Opener)" },
-      { key: "fullFuelLevel", label: "Full Fuel Level" },
-    ],
-  },
+  // {
+  //   key: "convenience",
+  //   label: "Convenience",
+  //   subIssues: [
+  //     { key: "ownersGuide", label: "Owner’s Guide" },
+  //     { key: "keysRemotes", label: "Keys and Remote Controls" },
+  //     { key: "universalTransmitter", label: "Universal Transmitter (Garage Door Opener)" },
+  //     { key: "fullFuelLevel", label: "Full Fuel Level" },
+  //   ],
+  // },
   {
   key: "roadTest",
   label: "Road Test",

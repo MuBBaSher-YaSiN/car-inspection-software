@@ -3,15 +3,31 @@
 
 import { useSession } from "next-auth/react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Sparkles, Check, X, Download, Wrench, Car, User } from "lucide-react";
 import { cardVariants, buttonVariants, statusVariants } from "@/lib/animations";
+import { inspectionTabs as baseTabs } from "@/config/inspectionTabs";
+import type { Severity } from "@/types/job";
 export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJobs: () => void }) {
   const { data: session } = useSession();
   const [isHovered, setIsHovered] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [localStatus, setLocalStatus] = useState(job.status);
+  
+  // Dialog and form states
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isFormSubmitted, setIsFormSubmitted] = useState(false);
+  const [activeTab, setActiveTab] = useState(baseTabs[0].key);
+  const [formData, setFormData] = useState({
+    carNumber: job.carNumber || "",
+    customerName: job.customerName || "",
+    engineNumber: job.engineNumber || "",
+    inspectionTabs: []
+  });
 
   const isTeam = session?.user?.role === "team";
   const isAdmin = session?.user?.role === "admin";
@@ -29,13 +45,85 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
   };
 
   
-  const handleClaim = async () => {
-    setIsAnimating(true);
-    const res = await fetch(`/api/jobs/${job._id}/claim`, { method: "PATCH" });
-    if (res.ok) {
-      setLocalStatus("in_progress");
-      setTimeout(() => refreshJobs(), 800);
+  // Open dialog when Start Inspection is clicked
+  const handleStartInspectionClick = () => {
+    setIsDialogOpen(true);
+    setIsFormSubmitted(false);
+    setActiveTab(baseTabs[0].key);
+    
+    // Merge existing inspectionTabs with baseTabs
+    const mergedTabs = baseTabs.map((tab) => {
+      const existingTab = job.inspectionTabs?.find((t: any) => t.key === tab.key);
+      return {
+        ...tab,
+        subIssues: tab.subIssues.map((issue) => {
+          const existingIssue = existingTab?.subIssues?.find((i: any) => i.key === issue.key);
+          return {
+            ...issue,
+            severity: existingIssue?.severity || "ok",
+            comment: existingIssue?.comment || "",
+          };
+        }),
+      };
+    });
+    
+    // Reset form data to current job data
+    setFormData({
+      carNumber: job.carNumber || "",
+      customerName: job.customerName || "",
+      engineNumber: job.engineNumber || "",
+      inspectionTabs: mergedTabs
+    });
+  };
+
+  // Handle form submission in dialog
+  const handleFormSubmit = () => {
+    // Validate fields
+    if (!formData.carNumber || !formData.customerName) {
+      alert("Please fill in all required fields");
+      return;
     }
+    setIsFormSubmitted(true);
+  };
+
+  // Handle final start action (update job + claim)
+  const handleStartInspection = async () => {
+    setIsAnimating(true);
+    
+    try {
+      // First, update the job with new data including inspectionTabs
+      const updateRes = await fetch(`/api/jobs/${job._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          carNumber: formData.carNumber,
+          customerName: formData.customerName,
+          engineNumber: formData.engineNumber,
+          inspectionTabs: formData.inspectionTabs
+        })
+      });
+
+      if (!updateRes.ok) {
+        alert("Error updating job");
+        setIsAnimating(false);
+        return;
+      }
+
+      // Then, claim the job
+      const claimRes = await fetch(`/api/jobs/${job._id}/claim`, { method: "PATCH" });
+      if (claimRes.ok) {
+        setLocalStatus("in_progress");
+        setIsDialogOpen(false);
+        setIsFormSubmitted(false);
+        setTimeout(() => refreshJobs(), 800);
+      } else {
+        alert("Error claiming job");
+      }
+    } catch (error) {
+      console.error("Error starting inspection:", error);
+      alert("An error occurred");
+    }
+    
     setIsAnimating(false);
   };
 
@@ -268,31 +356,6 @@ const handleEdit = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.25 }}
           >
-            {isTeam && job.status === "pending" && !assignedTo && (
-              <motion.button
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap="tap"
-                onClick={handleClaim}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
-              >
-                <Sparkles className="w-4 h-4" />
-                Claim
-              </motion.button>
-            )}
-
-            {isTeam && job.status === "in_progress" && assignedTo === userId && (
-              <motion.button
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap="tap"
-                onClick={handleComplete}
-                className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-lg text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
-              >
-                <Check className="w-4 h-4" />
-                Complete
-              </motion.button>
-            )}
 
             <motion.button
               variants={buttonVariants}
@@ -353,10 +416,261 @@ const handleEdit = () => {
     </motion.button>
   </>
 )}
-
+            {isAdmin && job.status === "pending" && (
+              <motion.button
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+                onClick={handleStartInspectionClick}
+                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
+              >
+                <Sparkles className="w-4 h-4" />
+                Start Inspection
+              </motion.button>
+            )}
+            {isAdmin && job.status === "in_progress" && (
+              <motion.button
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+                onClick={handleComplete}
+                className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-lg text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
+              >
+                <Check className="w-4 h-4" />
+                Complete
+              </motion.button>
+            )}
           </motion.div>
         </CardContent>
       </Card>
+
+      {/* Dialog for editing job details before starting inspection */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {isFormSubmitted ? "Ready to Start Inspection" : "Edit Job Details"}
+            </DialogTitle>
+            <DialogDescription>
+              {isFormSubmitted 
+                ? "Click 'Start' to begin the inspection with the updated details." 
+                : "Update the job details and inspection items before starting."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {!isFormSubmitted ? (
+            // Form fields
+            <div className="space-y-6 py-4">
+              {/* Basic Job Details */}
+              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 space-y-4">
+                <h3 className="font-semibold text-lg">Basic Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="carNumber">Car Number *</Label>
+                    <Input
+                      id="carNumber"
+                      value={formData.carNumber}
+                      onChange={(e) => setFormData({ ...formData, carNumber: e.target.value })}
+                      placeholder="Enter car number"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="customerName">Customer Name *</Label>
+                    <Input
+                      id="customerName"
+                      value={formData.customerName}
+                      onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                      placeholder="Enter customer name"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="engineNumber">Engine Number</Label>
+                    <Input
+                      id="engineNumber"
+                      value={formData.engineNumber}
+                      onChange={(e) => setFormData({ ...formData, engineNumber: e.target.value })}
+                      placeholder="Enter engine number"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Inspection Tabs */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Inspection Details</h3>
+                
+                {/* Tabs */}
+                <div className="flex flex-wrap gap-2">
+                  {baseTabs.map((tab) => (
+                    <button
+                      key={tab.key}
+                      className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                        activeTab === tab.key
+                          ? "bg-indigo-600 text-white"
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600"
+                      }`}
+                      onClick={() => setActiveTab(tab.key)}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Tab Content */}
+                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                  {formData.inspectionTabs
+                    ?.filter((tab) => tab.key === activeTab)
+                    .map((tab) => (
+                      <div key={tab.key} className="space-y-3">
+                        {tab.subIssues.map((issue) => (
+                          <div
+                            key={issue.key}
+                            className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 space-y-3"
+                          >
+                            <h4 className="font-medium text-sm">{issue.label}</h4>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                <Label className="text-xs">Severity</Label>
+                                <select
+                                  value={issue.severity}
+                                  onChange={(e) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      inspectionTabs: prev.inspectionTabs.map((t) =>
+                                        t.key === tab.key
+                                          ? {
+                                              ...t,
+                                              subIssues: t.subIssues.map((i) =>
+                                                i.key === issue.key
+                                                  ? { ...i, severity: e.target.value as Severity }
+                                                  : i
+                                              ),
+                                            }
+                                          : t
+                                      ),
+                                    }))
+                                  }
+                                  className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                >
+                                  <option value="ok">OK</option>
+                                  <option value="minor">Minor</option>
+                                  <option value="major">Major</option>
+                                </select>
+                              </div>
+                              
+                              <div className="space-y-1 md:col-span-2">
+                                <Label className="text-xs">Comment</Label>
+                                <textarea
+                                  placeholder="Add comment..."
+                                  value={issue.comment}
+                                  onChange={(e) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      inspectionTabs: prev.inspectionTabs.map((t) =>
+                                        t.key === tab.key
+                                          ? {
+                                              ...t,
+                                              subIssues: t.subIssues.map((i) =>
+                                                i.key === issue.key
+                                                  ? { ...i, comment: e.target.value }
+                                                  : i
+                                              ),
+                                            }
+                                          : t
+                                      ),
+                                    }))
+                                  }
+                                  className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white min-h-[60px]"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            // Confirmation view
+            <div className="space-y-4 py-4 max-h-[500px] overflow-y-auto">
+              <div className="space-y-3">
+                <h3 className="font-semibold">Basic Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <p className="text-sm text-muted-foreground">Car Number</p>
+                    <p className="font-medium">{formData.carNumber}</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <p className="text-sm text-muted-foreground">Customer Name</p>
+                    <p className="font-medium">{formData.customerName}</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg md:col-span-2">
+                    <p className="text-sm text-muted-foreground">Engine Number</p>
+                    <p className="font-medium">{formData.engineNumber || "N/A"}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="font-semibold">Inspection Summary</h3>
+                <p className="text-sm text-muted-foreground">
+                  All inspection details have been recorded. Click 'Start' to begin the inspection.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex gap-2">
+            {!isFormSubmitted ? (
+              <>
+                <motion.button
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  onClick={() => setIsDialogOpen(false)}
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  onClick={handleFormSubmit}
+                  className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg text-sm shadow-md hover:shadow-lg transition-all"
+                >
+                  Submit
+                </motion.button>
+              </>
+            ) : (
+              <>
+                <motion.button
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  onClick={() => setIsFormSubmitted(false)}
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+                >
+                  Back
+                </motion.button>
+                <motion.button
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  onClick={handleStartInspection}
+                  disabled={isAnimating}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {isAnimating ? "Starting..." : "Start"}
+                </motion.button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }

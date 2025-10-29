@@ -104,20 +104,20 @@ export default function PostJobPage() {
         />
         <input
           type="text"
-          placeholder="Customer Name"
+          placeholder="Inspector Name"
           value={form.customerName}
           onChange={(e) => setForm({ ...form, customerName: e.target.value })}
           className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         />
         <input
           type="text"
-          placeholder="Engine Number"
+          placeholder="Chassis Number"
           value={form.engineNumber}
           onChange={(e) => setForm({ ...form, engineNumber: e.target.value })}
           className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         />
       </div>
-
+{false &&    <>
       {/* Tabs */}
       <div className="flex flex-wrap space-x-2 mb-4">
         {inspectionTabs.map((tab) => (
@@ -236,7 +236,7 @@ export default function PostJobPage() {
             ))}
           </div>
         ))}
-
+    </>}
       {/* Submit */}
       <button
         onClick={handleSubmit}

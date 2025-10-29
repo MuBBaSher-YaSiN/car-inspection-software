@@ -11,7 +11,7 @@ export async function PATCH(req, { params }) {
   try {
     const session = await getServerSession({ req, ...authOptions });
 
-    if (!session || session.user.role !== "team") {
+    if (!session) {
       console.error(" Unauthorized access");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
