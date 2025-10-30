@@ -491,7 +491,7 @@ export async function generateJobPDF(job: Job, logoBytes?: Uint8Array, bannerByt
     color: rgb(1, 0.4, 0),
   });
   
-  const line1 = "I acknowledge Motor Check has inspected my vehicle and returned it in good condition.";
+  const line1 = "I acknowledge Motor Expert has inspected my vehicle and returned it in good condition.";
   const line1Wrapped = wrapText(line1, font, bulletSize, disclaimerBoxWidth - disclaimerPadding * 2 - 15);
   
   for (const line of line1Wrapped) {
