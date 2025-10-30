@@ -436,66 +436,113 @@ export async function generateJobPDF(job: Job, logoBytes?: Uint8Array, bannerByt
     }
   }
 
-  // ====== Disclaimer ======
-  y -= 5; // Minimal space before disclaimer
+  // ====== Disclaimer Box ======
+  y -= 10; // Space before disclaimer
   
-  const disclaimerFull = "Disclaimer: Report is valid only at the time of inspection. No liability is accepted for hidden or future defects.";
-  const disclaimerBoldSize = 11; // Bigger and bolder for "Disclaimer:"
-  const disclaimerTextSize = 10; // Increased from 8 to 10
+  const disclaimerBoxWidth = width - marginX * 2;
+  const disclaimerBoxHeight = 85;
+  const disclaimerHeaderHeight = 22;
+  const disclaimerPadding = 10;
   
-  // Wrap the full disclaimer text (including "Disclaimer:" prefix)
-  const disclaimerMaxWidth = width - marginX * 3; // Slightly less padding
-  const disclaimerLines = wrapText(disclaimerFull, font, disclaimerTextSize, disclaimerMaxWidth);
+  ensureSpace(disclaimerBoxHeight + 10);
   
-  // Draw each line centered
-  for (let i = 0; i < disclaimerLines.length; i++) {
-    const line = disclaimerLines[i];
-    
-    // For the first line, we need to make "Disclaimer:" bold and bigger
-    if (i === 0 && line.startsWith("Disclaimer:")) {
-      // Split into bold and regular parts
-      const boldPart = "Disclaimer:";
-      const regularPart = line.substring(boldPart.length);
-      
-      const boldWidth = boldFont.widthOfTextAtSize(boldPart, disclaimerBoldSize);
-      const regularWidth = font.widthOfTextAtSize(regularPart, disclaimerTextSize);
-      const totalWidth = boldWidth + regularWidth;
-      
-      const startX = (width - totalWidth) / 2;
-      
-      // Draw bold part (bigger and darker)
-      page.drawText(boldPart, {
-        x: startX,
-        y: y,
-        size: disclaimerBoldSize,
-        font: boldFont,
-        color: rgb(0.2, 0.2, 0.2), // Darker for more prominence
-      });
-      
-      // Draw regular part
-      page.drawText(regularPart, {
-        x: startX + boldWidth,
-        y: y - 1, // Slight adjustment for baseline alignment
-        size: disclaimerTextSize,
-        font,
-        color: rgb(0.4, 0.4, 0.4), // Slightly darker than before
-      });
-    } else {
-      // Regular lines (centered)
-      const lineWidth = font.widthOfTextAtSize(line, disclaimerTextSize);
-      const lineX = (width - lineWidth) / 2;
-      
-      page.drawText(line, {
-        x: lineX,
-        y: y,
-        size: disclaimerTextSize,
-        font,
-        color: rgb(0.4, 0.4, 0.4),
-      });
-    }
-    
-    y -= 14; // Line spacing
+  // Black header bar
+  page.drawRectangle({
+    x: marginX,
+    y: y - disclaimerHeaderHeight,
+    width: disclaimerBoxWidth,
+    height: disclaimerHeaderHeight,
+    color: rgb(0, 0, 0),
+  });
+  
+  // Header text "Disclaimer:" in white
+  page.drawText("Disclaimer:", {
+    x: marginX + disclaimerPadding,
+    y: y - disclaimerHeaderHeight + 6,
+    size: 12,
+    font: boldFont,
+    color: rgb(1, 1, 1),
+  });
+  
+  y -= disclaimerHeaderHeight;
+  
+  // White content box with border
+  page.drawRectangle({
+    x: marginX,
+    y: y - (disclaimerBoxHeight - disclaimerHeaderHeight),
+    width: disclaimerBoxWidth,
+    height: disclaimerBoxHeight - disclaimerHeaderHeight,
+    color: rgb(1, 1, 1),
+    borderColor: rgb(0, 0, 0),
+    borderWidth: 1,
+  });
+  
+  // Disclaimer bullet points
+  const bulletSize = 10;
+  const bulletX = marginX + disclaimerPadding + 5;
+  let bulletY = y - 18;
+  
+  // Bullet 1
+  page.drawText("•", {
+    x: bulletX,
+    y: bulletY,
+    size: bulletSize,
+    font: boldFont,
+    color: rgb(1, 0.4, 0),
+  });
+  
+  const line1 = "I acknowledge Motor Check has inspected my vehicle and returned it in good condition.";
+  const line1Wrapped = wrapText(line1, font, bulletSize, disclaimerBoxWidth - disclaimerPadding * 2 - 15);
+  
+  for (const line of line1Wrapped) {
+    page.drawText(line, {
+      x: bulletX + 12,
+      y: bulletY,
+      size: bulletSize,
+      font,
+      color: rgb(0.1, 0.1, 0.5),
+    });
+    bulletY -= 12;
   }
+  
+  bulletY -= 3; // Extra space between bullets
+  
+  // Bullet 2
+  page.drawText("•", {
+    x: bulletX,
+    y: bulletY,
+    size: bulletSize,
+    font: boldFont,
+    color: rgb(1, 0.4, 0),
+  });
+  
+  const line2 = "I acknowledge that this inspection is valid only at the time of inspection.";
+  const line2Wrapped = wrapText(line2, font, bulletSize, disclaimerBoxWidth - disclaimerPadding * 2 - 15);
+  
+  for (const line of line2Wrapped) {
+    page.drawText(line, {
+      x: bulletX + 12,
+      y: bulletY,
+      size: bulletSize,
+      font,
+      color: rgb(0.1, 0.1, 0.5),
+    });
+    bulletY -= 12;
+  }
+  
+  // Signature line
+  const signatureY = y - (disclaimerBoxHeight - disclaimerHeaderHeight) + 12;
+  const signatureLineStart = width - marginX - 170;
+  const signatureLineEnd = width - marginX - disclaimerPadding;
+  
+  page.drawLine({
+    start: { x: signatureLineStart, y: signatureY },
+    end: { x: signatureLineEnd, y: signatureY },
+    color: rgb(0, 0, 0),
+    thickness: 1,
+  });
+  
+  y -= (disclaimerBoxHeight - disclaimerHeaderHeight) + 5;
 
   // ====== Footer (below disclaimer) ======
   y -= 10; // Space between disclaimer and footer
