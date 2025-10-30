@@ -357,7 +357,7 @@ const handleEdit = () => {
             transition={{ delay: 0.25 }}
           >
 
-            <motion.button
+           {job.status !== "pending" && <motion.button
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
@@ -366,7 +366,7 @@ const handleEdit = () => {
             >
               <Download className="w-4 h-4" />
               Download PDF
-            </motion.button>
+            </motion.button>}
 
             {/* {isAdmin && job.status === "completed" && (
               <>
