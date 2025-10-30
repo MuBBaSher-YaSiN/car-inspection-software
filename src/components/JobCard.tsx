@@ -368,7 +368,7 @@ const handleEdit = () => {
               Download PDF
             </motion.button>
 
-            {isAdmin && job.status === "completed" && (
+            {/* {isAdmin && job.status === "completed" && (
               <>
                 <motion.button
                   variants={buttonVariants}
@@ -391,7 +391,7 @@ const handleEdit = () => {
                   Reject
                 </motion.button>
               </>
-            )}
+            )} */}
             {isAdmin && (
   <>
     <motion.button

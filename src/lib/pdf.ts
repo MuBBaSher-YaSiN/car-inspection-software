@@ -2,7 +2,7 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import type { Job } from "@/types/job";
 
-export async function generateJobPDF(job: Job, logoBytes?: Uint8Array): Promise<Uint8Array> {
+export async function generateJobPDF(job: Job, logoBytes?: Uint8Array, bannerBytes?: Uint8Array): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
   let page = pdfDoc.addPage([595, 842]); // A4
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -188,57 +188,100 @@ export async function generateJobPDF(job: Job, logoBytes?: Uint8Array): Promise<
     OK:    [0.1, 0.55, 0.85],// blue-ish
   };
 
-  // ====== Modern Gradient Header (unchanged) ======
+  // ====== Banner Image Header ======
   const headerHeight = 100;
-  const gradientSteps = 20;
-  const gradientWidth = width / gradientSteps;
-
-  for (let i = 0; i < gradientSteps; i++) {
-    const progress = i / gradientSteps;
-    const color = rgb(0.35 - progress * 0.25, 0.1 + progress * 0.3, 0.6 + progress * 0.2);
-
-    page.drawRectangle({
-      x: i * gradientWidth,
-      y: height - headerHeight,
-      width: gradientWidth,
-      height: headerHeight,
-      color,
-    });
-  }
-
-  // ====== Logo (unchanged) ======
-  if (logoBytes) {
+  
+  if (bannerBytes) {
     try {
-      const logoImg = await pdfDoc.embedPng(logoBytes);
-      page.drawImage(logoImg, {
-        x: marginX,
-        y: height - 80,
-        width: 100,
-        height: 50,
+      const bannerImg = await pdfDoc.embedJpg(bannerBytes);
+      const bannerDims = bannerImg.scale(1);
+      
+      // Calculate dimensions to fit the header while maintaining aspect ratio
+      const bannerAspect = bannerDims.width / bannerDims.height;
+      const bannerWidth = width;
+      const bannerHeight = bannerWidth / bannerAspect;
+      
+      page.drawImage(bannerImg, {
+        x: 0,
+        y: height - bannerHeight,
+        width: bannerWidth,
+        height: bannerHeight,
       });
+      
+      y = height - bannerHeight - 40;
     } catch (e) {
-      console.warn("Logo embedding failed", e);
+      console.warn("Banner embedding failed", e);
+      // Fallback to gradient header if banner fails
+      const gradientSteps = 20;
+      const gradientWidth = width / gradientSteps;
+
+      for (let i = 0; i < gradientSteps; i++) {
+        const progress = i / gradientSteps;
+        const color = rgb(0.35 - progress * 0.25, 0.1 + progress * 0.3, 0.6 + progress * 0.2);
+
+        page.drawRectangle({
+          x: i * gradientWidth,
+          y: height - headerHeight,
+          width: gradientWidth,
+          height: headerHeight,
+          color,
+        });
+      }
+
+      page.drawText("CAR INSPECTION REPORT", {
+        x: marginX + 120,
+        y: height - 65,
+        size: 24,
+        font: boldFont,
+        color: rgb(1, 1, 1),
+      });
+
+      page.drawText("Comprehensive Vehicle Assessment", {
+        x: marginX + 120,
+        y: height - 85,
+        size: 12,
+        font,
+        color: rgb(0.9, 0.9, 0.9),
+      });
+      
+      y = height - 140;
     }
+  } else {
+    // Fallback to gradient header if no banner provided
+    const gradientSteps = 20;
+    const gradientWidth = width / gradientSteps;
+
+    for (let i = 0; i < gradientSteps; i++) {
+      const progress = i / gradientSteps;
+      const color = rgb(0.35 - progress * 0.25, 0.1 + progress * 0.3, 0.6 + progress * 0.2);
+
+      page.drawRectangle({
+        x: i * gradientWidth,
+        y: height - headerHeight,
+        width: gradientWidth,
+        height: headerHeight,
+        color,
+      });
+    }
+
+    page.drawText("CAR INSPECTION REPORT", {
+      x: marginX + 120,
+      y: height - 65,
+      size: 24,
+      font: boldFont,
+      color: rgb(1, 1, 1),
+    });
+
+    page.drawText("Comprehensive Vehicle Assessment", {
+      x: marginX + 120,
+      y: height - 85,
+      size: 12,
+      font,
+      color: rgb(0.9, 0.9, 0.9),
+    });
+    
+    y = height - 140;
   }
-
-  // ====== Title (unchanged) ======
-  page.drawText("CAR INSPECTION REPORT", {
-    x: marginX + 120,
-    y: height - 65,
-    size: 24,
-    font: boldFont,
-    color: rgb(1, 1, 1),
-  });
-
-  page.drawText("Comprehensive Vehicle Assessment", {
-    x: marginX + 120,
-    y: height - 85,
-    size: 12,
-    font,
-    color: rgb(0.9, 0.9, 0.9),
-  });
-
-  y = height - 140;
 
   // ====== Info box (your original look; page-safety only) ======
   ensureSpace(70 + 10);
@@ -327,7 +370,7 @@ export async function generateJobPDF(job: Job, logoBytes?: Uint8Array): Promise<
     xPos += 110;
   });
 
-  y -= 60;
+  y -= 30;
 
   // ====== Issues grouped (UI: numbering + wrapped comments) ======
   const grouped: Record<string, typeof job.inspectionTabs[0]["subIssues"]> = {
@@ -393,10 +436,72 @@ export async function generateJobPDF(job: Job, logoBytes?: Uint8Array): Promise<
     }
   }
 
-  // ====== Footer (unchanged) ======
+  // ====== Disclaimer ======
+  y -= 5; // Minimal space before disclaimer
+  
+  const disclaimerFull = "Disclaimer: Report is valid only at the time of inspection. No liability is accepted for hidden or future defects.";
+  const disclaimerBoldSize = 11; // Bigger and bolder for "Disclaimer:"
+  const disclaimerTextSize = 10; // Increased from 8 to 10
+  
+  // Wrap the full disclaimer text (including "Disclaimer:" prefix)
+  const disclaimerMaxWidth = width - marginX * 3; // Slightly less padding
+  const disclaimerLines = wrapText(disclaimerFull, font, disclaimerTextSize, disclaimerMaxWidth);
+  
+  // Draw each line centered
+  for (let i = 0; i < disclaimerLines.length; i++) {
+    const line = disclaimerLines[i];
+    
+    // For the first line, we need to make "Disclaimer:" bold and bigger
+    if (i === 0 && line.startsWith("Disclaimer:")) {
+      // Split into bold and regular parts
+      const boldPart = "Disclaimer:";
+      const regularPart = line.substring(boldPart.length);
+      
+      const boldWidth = boldFont.widthOfTextAtSize(boldPart, disclaimerBoldSize);
+      const regularWidth = font.widthOfTextAtSize(regularPart, disclaimerTextSize);
+      const totalWidth = boldWidth + regularWidth;
+      
+      const startX = (width - totalWidth) / 2;
+      
+      // Draw bold part (bigger and darker)
+      page.drawText(boldPart, {
+        x: startX,
+        y: y,
+        size: disclaimerBoldSize,
+        font: boldFont,
+        color: rgb(0.2, 0.2, 0.2), // Darker for more prominence
+      });
+      
+      // Draw regular part
+      page.drawText(regularPart, {
+        x: startX + boldWidth,
+        y: y - 1, // Slight adjustment for baseline alignment
+        size: disclaimerTextSize,
+        font,
+        color: rgb(0.4, 0.4, 0.4), // Slightly darker than before
+      });
+    } else {
+      // Regular lines (centered)
+      const lineWidth = font.widthOfTextAtSize(line, disclaimerTextSize);
+      const lineX = (width - lineWidth) / 2;
+      
+      page.drawText(line, {
+        x: lineX,
+        y: y,
+        size: disclaimerTextSize,
+        font,
+        color: rgb(0.4, 0.4, 0.4),
+      });
+    }
+    
+    y -= 14; // Line spacing
+  }
+
+  // ====== Footer (below disclaimer) ======
+  y -= 10; // Space between disclaimer and footer
   page.drawText(`Generated on ${new Date().toLocaleString()}`, {
     x: marginX,
-    y: 30,
+    y: y,
     size: 9,
     font,
     color: rgb(0.5, 0.5, 0.5),

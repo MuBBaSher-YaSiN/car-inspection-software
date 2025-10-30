@@ -3,6 +3,9 @@ import { connectToDB } from "@/lib/db";
 import { Job } from "@/models/Job";
 import { NextResponse } from "next/server";
 import { generateJobPDF } from "@/lib/pdf";
+import { readFile } from "fs/promises";
+import { join } from "path";
+
 // src/pages/api/pdf.ts
 console.log("📄 PDF API route START", new Date().toISOString());
 export async function GET(req, { params }) {
@@ -14,7 +17,17 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    const pdfBytes = await generateJobPDF(job);
+    // Load banner image
+    let bannerBytes;
+    try {
+      const bannerPath = join(process.cwd(), "public", "report-banner.jpeg");
+      const bannerBuffer = await readFile(bannerPath);
+      bannerBytes = new Uint8Array(bannerBuffer);
+    } catch (e) {
+      console.warn("Failed to load banner image:", e);
+    }
+
+    const pdfBytes = await generateJobPDF(job, undefined, bannerBytes);
 
     // Create safe filename from customer name
     const safeName = job.customerName

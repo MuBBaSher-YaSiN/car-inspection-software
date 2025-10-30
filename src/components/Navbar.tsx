@@ -6,8 +6,8 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { Car, Wrench, UserCog, Home, Menu, X } from 'lucide-react';
-import { useSession } from 'next-auth/react';
+import { Car, Wrench, UserCog, Home, Menu, X, LogOut } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
 import { containerVariants, itemVariants, underlineVariants } from "@/lib/animations";
 import logo from "../../logo.png"
 import Image from 'next/image';
@@ -187,6 +187,20 @@ export default function Navbar() {
             <ThemeToggle />
           </motion.div>
 
+          {/* Logout Button - Desktop */}
+          {session && (
+            <motion.button
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="hidden lg:flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg shadow-md transition-all duration-200"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </motion.button>
+          )}
+
           {/* Mobile Menu Button */}
           <button
             className="lg:hidden p-2 rounded-md hover:bg-accent"
@@ -225,8 +239,17 @@ export default function Navbar() {
                 </Link>
               );
             })}
-          <div className="mt-4">
+          <div className="mt-4 flex items-center gap-4">
             <ThemeToggle />
+            {session && (
+              <button
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg shadow-md transition-all duration-200"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            )}
           </div>
         </motion.nav>
       )}
