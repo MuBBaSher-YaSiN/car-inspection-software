@@ -7,11 +7,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sparkles, Check, X, Download, Wrench, Car, User } from "lucide-react";
 import { cardVariants, buttonVariants, statusVariants } from "@/lib/animations";
 import { inspectionTabs as baseTabs } from "@/config/inspectionTabs";
-import type { Severity } from "@/types/job";
+import type { Severity, InspectionType } from "@/types/job";
 export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJobs: () => void }) {
   const { data: session } = useSession();
   const [isHovered, setIsHovered] = useState(false);
@@ -21,11 +21,13 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
   // Dialog and form states
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isFormSubmitted, setIsFormSubmitted] = useState(false);
-  const [activeTab, setActiveTab] = useState(baseTabs[0].key);
+  const [activeTab, setActiveTab] = useState("");
+  const prevInspectionTypeRef = useRef<InspectionType | undefined>(undefined);
   const [formData, setFormData] = useState({
     carNumber: job.carNumber || "",
     customerName: job.customerName || "",
     engineNumber: job.engineNumber || "",
+    inspectionType: job.inspectionType || "",
     inspectionTabs: []
   });
 
@@ -49,10 +51,19 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
   const handleStartInspectionClick = () => {
     setIsDialogOpen(true);
     setIsFormSubmitted(false);
-    setActiveTab(baseTabs[0].key);
     
-    // Merge existing inspectionTabs with baseTabs
-    const mergedTabs = baseTabs.map((tab) => {
+    // Filter baseTabs based on the job's inspection type
+    const relevantTabs = job.inspectionType 
+      ? baseTabs.filter((tab) => tab.classification.includes(job.inspectionType))
+      : baseTabs;
+    
+    // Set active tab to the first relevant tab
+    if (relevantTabs.length > 0) {
+      setActiveTab(relevantTabs[0].key);
+    }
+    
+    // Merge existing inspectionTabs with relevant baseTabs
+    const mergedTabs = relevantTabs.map((tab) => {
       const existingTab = job.inspectionTabs?.find((t: any) => t.key === tab.key);
       return {
         ...tab,
@@ -72,15 +83,19 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
       carNumber: job.carNumber || "",
       customerName: job.customerName || "",
       engineNumber: job.engineNumber || "",
+      inspectionType: job.inspectionType || "",
       inspectionTabs: mergedTabs
     });
+    
+    // Set the initial inspection type ref
+    prevInspectionTypeRef.current = job.inspectionType;
   };
 
   // Handle form submission in dialog
   const handleFormSubmit = () => {
     // Validate fields
-    if (!formData.carNumber || !formData.customerName) {
-      alert("Please fill in all required fields");
+    if (!formData.carNumber || !formData.customerName || !formData.inspectionType) {
+      alert("Please fill in all required fields (Car Number, Customer Name, and Inspection Type)");
       return;
     }
     setIsFormSubmitted(true);
@@ -99,6 +114,7 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
           carNumber: formData.carNumber,
           customerName: formData.customerName,
           engineNumber: formData.engineNumber,
+          inspectionType: formData.inspectionType,
           inspectionTabs: formData.inspectionTabs
         })
       });
@@ -126,6 +142,43 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
     
     setIsAnimating(false);
   };
+
+  // Update inspection tabs when inspection type changes in dialog
+  useEffect(() => {
+    if (isDialogOpen && formData.inspectionType && prevInspectionTypeRef.current !== formData.inspectionType) {
+      // Filter tabs based on the selected inspection type
+      const relevantTabs = baseTabs.filter((tab) => 
+        tab.classification.includes(formData.inspectionType)
+      );
+      
+      // Create new tabs with default values, preserving existing data
+      const newTabs = relevantTabs.map((tab) => {
+        const existingTab = formData.inspectionTabs.find((t) => t.key === tab.key);
+        return existingTab || {
+          ...tab,
+          subIssues: tab.subIssues.map((issue) => ({
+            ...issue,
+            severity: "ok" as Severity,
+            comment: "",
+          })),
+        };
+      });
+      
+      setFormData((prev) => ({
+        ...prev,
+        inspectionTabs: newTabs,
+      }));
+      
+      // Set active tab to the first relevant tab
+      const firstTab = relevantTabs[0];
+      if (firstTab) {
+        setActiveTab(firstTab.key);
+      }
+      
+      // Update the ref
+      prevInspectionTypeRef.current = formData.inspectionType;
+    }
+  }, [formData.inspectionType, isDialogOpen]);
 
   const handleComplete = async () => {
     setIsAnimating(true);
@@ -315,6 +368,16 @@ const handleEdit = () => {
                 </div>
               </div>
             )}
+            
+            {job.inspectionType && (
+              <div className="flex items-center gap-2 col-span-2">
+                <Sparkles className="w-4 h-4 text-indigo-500" />
+                <div>
+                  <p className="text-muted-foreground">Inspection Type</p>
+                  <p className="text-card-foreground font-medium">{job.inspectionType}</p>
+                </div>
+              </div>
+            )}
           </motion.div>
 
           {/* Rejection note */}
@@ -492,29 +555,52 @@ const handleEdit = () => {
                       placeholder="Enter engine number"
                     />
                   </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="inspectionType">Inspection Type *</Label>
+                    <select
+                      id="inspectionType"
+                      value={formData.inspectionType}
+                      onChange={(e) => setFormData({ ...formData, inspectionType: e.target.value as InspectionType })}
+                      className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="">Select Inspection Type</option>
+                      <option value="Chassis inspection">Chassis inspection</option>
+                      <option value="Paint inspection">Paint inspection</option>
+                      <option value="Paint and chassis inspection">Paint and chassis inspection</option>
+                      <option value="OBD inspection">OBD inspection</option>
+                      <option value="360 inspection">360 inspection</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
               {/* Inspection Tabs */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg">Inspection Details</h3>
-                
-                {/* Tabs */}
-                <div className="flex flex-wrap gap-2">
-                  {baseTabs.map((tab) => (
-                    <button
-                      key={tab.key}
-                      className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                        activeTab === tab.key
-                          ? "bg-indigo-600 text-white"
-                          : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600"
-                      }`}
-                      onClick={() => setActiveTab(tab.key)}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
+              {formData.inspectionType ? (
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Inspection Details</h3>
+                  
+                  <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                    <p className="text-sm text-indigo-700 dark:text-indigo-300">
+                      <span className="font-semibold">Inspection Type:</span> {formData.inspectionType}
+                    </p>
+                  </div>
+                  
+                  {/* Tabs */}
+                  <div className="flex flex-wrap gap-2">
+                    {formData.inspectionTabs.map((tab) => (
+                      <button
+                        key={tab.key}
+                        className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                          activeTab === tab.key
+                            ? "bg-indigo-600 text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600"
+                        }`}
+                        onClick={() => setActiveTab(tab.key)}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
 
                 {/* Tab Content */}
                 <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
@@ -591,6 +677,13 @@ const handleEdit = () => {
                     ))}
                 </div>
               </div>
+              ) : (
+                <div className="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 text-center">
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Please select an inspection type above to view and edit inspection details.
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             // Confirmation view
@@ -606,10 +699,16 @@ const handleEdit = () => {
                     <p className="text-sm text-muted-foreground">Customer Name</p>
                     <p className="font-medium">{formData.customerName}</p>
                   </div>
-                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg md:col-span-2">
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <p className="text-sm text-muted-foreground">Engine Number</p>
                     <p className="font-medium">{formData.engineNumber || "N/A"}</p>
                   </div>
+                  {formData.inspectionType && (
+                    <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                      <p className="text-sm text-indigo-700 dark:text-indigo-300">Inspection Type</p>
+                      <p className="font-medium text-indigo-900 dark:text-indigo-100">{formData.inspectionType}</p>
+                    </div>
+                  )}
                 </div>
               </div>
               

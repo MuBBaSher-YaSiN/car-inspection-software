@@ -1,5 +1,12 @@
 export type Severity = "minor" | "major" | "ok";
 
+export type InspectionType = 
+  | "Chassis inspection" 
+  | "Paint inspection" 
+  | "Paint and chassis inspection" 
+  | "OBD inspection" 
+  | "360 inspection";
+
 export interface SubIssue {
   key: string;
   label: string;
@@ -19,6 +26,7 @@ export interface Job {
   carNumber: string;
   customerName: string;
   engineNumber?: string;
+  inspectionType?: InspectionType;
   status: "pending" | "in_progress" | "completed" | "rejected" | "accepted";
   assignedTo?: {
     _id: string;

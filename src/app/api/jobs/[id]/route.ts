@@ -43,6 +43,7 @@ export async function PATCH(req, { params }) {
     if (body.carNumber) updatePayload.carNumber = body.carNumber;
     if (body.customerName) updatePayload.customerName = body.customerName;
     if (body.engineNumber !== undefined) updatePayload.engineNumber = body.engineNumber;
+    if (body.inspectionType !== undefined) updatePayload.inspectionType = body.inspectionType;
     if (body.inspectionTabs) updatePayload.inspectionTabs = body.inspectionTabs;
 
     const updatedJob = await Job.findByIdAndUpdate(jobId, updatePayload, { new: true });

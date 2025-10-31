@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 // import { FiUpload } from "react-icons/fi";
 import { inspectionTabs as baseTabs } from "@/config/inspectionTabs";
-import type { Job, Severity } from "@/types/job";
+import type { Job, Severity, InspectionType } from "@/types/job";
 
 export default function EditJobPage() {
   const { id } = useParams();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState(baseTabs[0].key);
   const [form, setForm] = useState<Job | null>(null);
+  const [activeTab, setActiveTab] = useState("");
   const [loading, setLoading] = useState(true);
+  const prevInspectionTypeRef = useRef<InspectionType | undefined>(undefined);
 
   // Fetch existing job
   useEffect(() => {
@@ -19,8 +20,14 @@ export default function EditJobPage() {
       const res = await fetch(`/api/jobs/${id}`);
       if (res.ok) {
         const job = await res.json();
+        
+        // Filter baseTabs based on the job's inspection type
+        const relevantTabs = job.inspectionType 
+          ? baseTabs.filter((tab) => tab.classification.includes(job.inspectionType))
+          : baseTabs;
+        
         // Merge with inspectionTabs so missing fields are added
-        const mergedTabs = baseTabs.map((tab) => {
+        const mergedTabs = relevantTabs.map((tab) => {
           const existingTab = job.inspectionTabs.find(
             (t: any) => t.key === tab.key
           );
@@ -44,6 +51,15 @@ export default function EditJobPage() {
           ...job,
           inspectionTabs: mergedTabs,
         });
+        
+        // Set initial active tab
+        const firstTab = relevantTabs[0];
+        if (firstTab) {
+          setActiveTab(firstTab.key);
+        }
+        
+        // Set initial inspection type ref
+        prevInspectionTypeRef.current = job.inspectionType;
       }
       setLoading(false);
     };
@@ -105,6 +121,7 @@ export default function EditJobPage() {
       carNumber: form.carNumber,
       customerName: form.customerName,
       engineNumber: form.engineNumber,
+      inspectionType: form.inspectionType,
       inspectionTabs: form.inspectionTabs,
     };
     const res = await fetch(`/api/jobs/${id}`, {
@@ -119,7 +136,42 @@ export default function EditJobPage() {
       alert("Error updating job");
     }
   };
-
+  // Update inspection tabs and active tab when inspection type changes
+  useEffect(() => {
+    if (form?.inspectionType && prevInspectionTypeRef.current !== form.inspectionType) {
+      // Filter tabs based on the new inspection type
+      const relevantTabs = baseTabs.filter((tab) => 
+        tab.classification.includes(form.inspectionType || "")
+      );
+      
+      // Update form with only relevant tabs, preserving existing data where possible
+      const updatedTabs = relevantTabs.map((tab) => {
+        const existingTab = form.inspectionTabs.find((t) => t.key === tab.key);
+        return existingTab || {
+          ...tab,
+          subIssues: tab.subIssues.map((issue) => ({
+            ...issue,
+            severity: "ok" as Severity,
+            comment: "",
+          })),
+        };
+      });
+      
+      setForm((prev) => prev ? {
+        ...prev,
+        inspectionTabs: updatedTabs,
+      } : prev);
+      
+      // Set active tab to the first relevant tab
+      const firstTab = relevantTabs[0];
+      if (firstTab) {
+        setActiveTab(firstTab.key);
+      }
+      
+      // Update the ref to the current inspection type
+      prevInspectionTypeRef.current = form.inspectionType;
+    }
+  }, [form?.inspectionType]);
   if (loading || !form) return <p className="p-6">Loading job...</p>;
 
   return (
@@ -150,11 +202,25 @@ export default function EditJobPage() {
           onChange={(e) => setForm({ ...form, engineNumber: e.target.value })}
           className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         />
+        <div>
+          <select
+            value={form.inspectionType || ""}
+            onChange={(e) => setForm({ ...form, inspectionType: e.target.value as InspectionType })}
+            className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="">Select Inspection Type</option>
+            <option value="Chassis inspection">Chassis inspection</option>
+            <option value="Paint inspection">Paint inspection</option>
+            <option value="Paint and chassis inspection">Paint and chassis inspection</option>
+            <option value="OBD inspection">OBD inspection</option>
+            <option value="360 inspection">360 inspection</option>
+          </select>
+        </div>
       </div>
 
       {/* Tabs */}
       <div className="flex flex-wrap space-x-2 mb-4">
-        {baseTabs.map((tab) => (
+        {form.inspectionTabs.map((tab) => (
           <button
             key={tab.key}
             className={`px-4 py-2 my-2 rounded transition-colors ${

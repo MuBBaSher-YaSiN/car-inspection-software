@@ -20,6 +20,10 @@ const JobSchema = new Schema(
     carNumber: { type: String, required: true },
     customerName: { type: String, required: true },
     engineNumber: { type: String },
+    inspectionType: { 
+      type: String, 
+      enum: ["Chassis inspection", "Paint inspection", "Paint and chassis inspection", "OBD inspection", "360 inspection"]
+    },
     assignedTo: { type: Schema.Types.ObjectId, ref: "User" },
     status: {
       type: String,

@@ -1,30 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 // import { FiUpload } from "react-icons/fi";
 import { inspectionTabs } from "@/config/inspectionTabs";
-import type { Job, Severity } from "@/types/job";
+import type { Job, Severity, InspectionType } from "@/types/job";
 // import Image from "next/image";
 
 export default function PostJobPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState(inspectionTabs[0].key);
+  const [activeTab, setActiveTab] = useState("");
+  const prevInspectionTypeRef = useRef<InspectionType | undefined>(undefined);
   const [form, setForm] = useState<Job>({
     _id: "",
     carNumber: "",
     customerName: "",
     engineNumber: "",
     status: "pending",
-    inspectionTabs: inspectionTabs.map((tab) => ({
-      ...tab,
-      subIssues: tab.subIssues.map((issue) => ({
-        ...issue,
-        severity: "ok",
-        comment: "",
-        // images: [],
-      })),
-    })),
+    inspectionTabs: [],
   });
 
   // const uploadToCloudinary = async (file: File) => {
@@ -72,11 +65,60 @@ export default function PostJobPage() {
   //   }
   // };
 
+  // Update inspection tabs when inspection type changes
+  useEffect(() => {
+    if (form.inspectionType && prevInspectionTypeRef.current !== form.inspectionType) {
+      // Filter tabs based on the selected inspection type
+      const relevantTabs = inspectionTabs.filter((tab) => 
+        tab.classification.includes(form.inspectionType || "")
+      );
+      
+      // Create new tabs with default values
+      const newTabs = relevantTabs.map((tab) => ({
+        ...tab,
+        subIssues: tab.subIssues.map((issue) => ({
+          ...issue,
+          severity: "ok" as Severity,
+          comment: "",
+        })),
+      }));
+      
+      setForm((prev) => ({
+        ...prev,
+        inspectionTabs: newTabs,
+      }));
+      
+      // Set active tab to the first relevant tab
+      const firstTab = relevantTabs[0];
+      if (firstTab) {
+        setActiveTab(firstTab.key);
+      }
+      
+      // Update the ref
+      prevInspectionTypeRef.current = form.inspectionType;
+    }
+  }, [form.inspectionType]);
+
   const handleSubmit = async () => {
+    // Validate required fields
+    if (!form.carNumber) {
+      alert("Please enter a car number");
+      return;
+    }
+    if (!form.customerName) {
+      alert("Please enter an inspector name");
+      return;
+    }
+    if (!form.inspectionType) {
+      alert("Please select an inspection type");
+      return;
+    }
+    
     const payload = {
       carNumber: form.carNumber,
       customerName: form.customerName,
       engineNumber: form.engineNumber,
+      inspectionType: form.inspectionType,
       inspectionTabs: form.inspectionTabs,
       status: "pending",
     };
@@ -95,32 +137,64 @@ export default function PostJobPage() {
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">
           Job Details
         </h2>
-        <input
-          type="text"
-          placeholder="Car Number"
-          value={form.carNumber}
-          onChange={(e) => setForm({ ...form, carNumber: e.target.value })}
-          className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-        />
-        <input
-          type="text"
-          placeholder="Inspector Name"
-          value={form.customerName}
-          onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-          className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-        />
-        <input
-          type="text"
-          placeholder="Chassis Number"
-          value={form.engineNumber}
-          onChange={(e) => setForm({ ...form, engineNumber: e.target.value })}
-          className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Car Number <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            placeholder="Car Number"
+            value={form.carNumber}
+            onChange={(e) => setForm({ ...form, carNumber: e.target.value })}
+            className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Inspector Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            placeholder="Inspector Name"
+            value={form.customerName}
+            onChange={(e) => setForm({ ...form, customerName: e.target.value })}
+            className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Chassis Number
+          </label>
+          <input
+            type="text"
+            placeholder="Chassis Number"
+            value={form.engineNumber}
+            onChange={(e) => setForm({ ...form, engineNumber: e.target.value })}
+            className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Inspection Type <span className="text-red-500">*</span>
+          </label>
+          <select
+            value={form.inspectionType || ""}
+            onChange={(e) => setForm({ ...form, inspectionType: e.target.value as InspectionType })}
+            className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="">Select Inspection Type</option>
+            <option value="Chassis inspection">Chassis inspection</option>
+            <option value="Paint inspection">Paint inspection</option>
+            <option value="Paint and chassis inspection">Paint and chassis inspection</option>
+            <option value="OBD inspection">OBD inspection</option>
+            <option value="360 inspection">360 inspection</option>
+          </select>
+        </div>
       </div>
-{false &&    <>
+{form.inspectionType &&    <>
       {/* Tabs */}
       <div className="flex flex-wrap space-x-2 mb-4">
-        {inspectionTabs.map((tab) => (
+        {form.inspectionTabs.map((tab) => (
           <button
             key={tab.key}
             className={`px-4 py-2 my-2 rounded transition-colors ${

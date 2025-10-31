@@ -9,9 +9,34 @@ export const inspectionTabs = [
 //       { key: "scheduledMaintenance", label: "Scheduled Maintenance Performed" },
 //      ],
 // },
+  {
+    key: "chassis",
+    label: "Chassis",
+    classification: ["Chassis inspection","Paint and chassis inspection"],
+    subIssues: [
+      { key: "chassisCondition", label: "Chassis condition" }
+    ]
+  },
+  {
+    key: "paint",
+    label: "Paint",
+    classification: ["Paint inspection","Paint and chassis inspection"],
+    subIssues: [
+      { key: "paintCondition", label: "Paint condition" }
+    ]
+  },
+  {
+    key: "obd",
+    label: "OBD",
+    classification: ["OBD inspection"],
+    subIssues: [
+      { key: "obdCondition", label: "OBD" }
+    ]
+  },
  {
     key: "exterior",
     label: "Exterior",
+    classification: ["360 inspection"],
     subIssues: [
       { key: "bodyPanelInspection", label: "Body Panel Inspection" },
       { key: "bumperFasciaInspection", label: "Bumper, Fascia Inspection" },
@@ -38,6 +63,7 @@ export const inspectionTabs = [
 {
     key: "interior",
     label: "Interior",
+    classification: ["360 inspection"],
     subIssues: [
       { key: "airbags", label: "Airbags" },
       { key: "safetyBelts", label: "Safety belts" },
@@ -98,6 +124,7 @@ export const inspectionTabs = [
   {
     key: "underhood",
     label: "Under Hood",
+    classification: ["360 inspection"],
     subIssues: [
       { key: "automaticTransaxleTransmission", label: "Automatic Transaxle/Transmission" },
       { key: "transferCase", label: "Transfer Case" },
@@ -135,6 +162,7 @@ export const inspectionTabs = [
   {
   key: "underChassis",
   label: "Under Chassis Inspection",
+  classification: ["360 inspection"],
   subIssues: [
     { key: "chassisCondition", label: "Chassis Condition" },
     { key: "fuelSupplySystem", label: "Fuel Supply System" },
@@ -168,6 +196,7 @@ export const inspectionTabs = [
  {
   key: "brakes",
   label: "Brake",
+  classification: ["360 inspection"],
   subIssues: [
     { key: "calipersWheelCylinders", label: "Calipers and Wheel Cylinders" },
     { key: "brakePadsShoes", label: "Brake Pads and Shoes" },
@@ -180,6 +209,7 @@ export const inspectionTabs = [
   {
     key: "diagnostics",
     label: "Diagnostics",
+    classification: ["360 inspection"],
     subIssues: [
       { key: "obdCheck", label: "On Board Diagnostics Check (OBD)" },
     ],
@@ -197,6 +227,7 @@ export const inspectionTabs = [
   {
   key: "roadTest",
   label: "Road Test",
+  classification: ["360 inspection"],
   subIssues: [
     { key: "engineStartsIdles", label: "Engine Starts and Idles Operation" },
     { key: "remoteStartsSystem", label: "Remote Starts System Operation" },
