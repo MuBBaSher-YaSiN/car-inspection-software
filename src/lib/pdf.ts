@@ -296,10 +296,10 @@ export async function generateJobPDF(job: Job, logoBytes?: Uint8Array, bannerByt
     // borderRadius: 5,
   });
 
-  const infoLeft = [`FILE #: ${job.jobCount || "-"}`, `CHASSIS #: ${job.engineNumber || "-"}`];
+  const infoLeft = [`FILE #: ${job.jobCount || "-"}`,`VEHICLE: ${job.carNumber || "-"}`, `CHASSIS #: ${job.engineNumber || "-"}`];
   const infoRight = [
     `INSPECTOR: ${job.customerName || "-"}`,
-    `DATE: ${new Date().toISOString().slice(0, 10)}`,
+    `DATE: ${new Date().toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' })}`,
   ];
 
   let infoY = y - 20;
@@ -546,7 +546,7 @@ export async function generateJobPDF(job: Job, logoBytes?: Uint8Array, bannerByt
 
   // ====== Footer (below disclaimer) ======
   y -= 10; // Space between disclaimer and footer
-  page.drawText(`Generated on ${new Date().toLocaleString()}`, {
+  page.drawText(`Generated on ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Dubai' })}`, {
     x: marginX,
     y: y,
     size: 9,
