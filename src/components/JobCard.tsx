@@ -20,7 +20,6 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
   
   // Dialog and form states
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isFormSubmitted, setIsFormSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState("");
   const prevInspectionTypeRef = useRef<InspectionType | undefined>(undefined);
   const [formData, setFormData] = useState({
@@ -50,7 +49,6 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
   // Open dialog when Start Inspection is clicked
   const handleStartInspectionClick = () => {
     setIsDialogOpen(true);
-    setIsFormSubmitted(false);
     
     // Filter baseTabs based on the job's inspection type
     const relevantTabs = job.inspectionType 
@@ -91,18 +89,14 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
     prevInspectionTypeRef.current = job.inspectionType;
   };
 
-  // Handle form submission in dialog
-  const handleFormSubmit = () => {
+  // Handle update and start (combined action)
+  const handleUpdateAndStart = async () => {
     // Validate fields
     if (!formData.carNumber || !formData.customerName || !formData.inspectionType) {
       alert("Please fill in all required fields (Car Number, Customer Name, and Inspection Type)");
       return;
     }
-    setIsFormSubmitted(true);
-  };
-
-  // Handle final start action (update job + claim)
-  const handleStartInspection = async () => {
+    
     setIsAnimating(true);
     
     try {
@@ -130,7 +124,6 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
       if (claimRes.ok) {
         setLocalStatus("in_progress");
         setIsDialogOpen(false);
-        setIsFormSubmitted(false);
         setTimeout(() => refreshJobs(), 800);
       } else {
         alert("Error claiming job");
@@ -511,19 +504,13 @@ const handleEdit = () => {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              {isFormSubmitted ? "Ready to Start Inspection" : "Edit Job Details"}
-            </DialogTitle>
+            <DialogTitle>Edit Job Details & Start Inspection</DialogTitle>
             <DialogDescription>
-              {isFormSubmitted 
-                ? "Click 'Start' to begin the inspection with the updated details." 
-                : "Update the job details and inspection items before starting."}
+              Update the job details and inspection items, then click "Update & Start" to begin.
             </DialogDescription>
           </DialogHeader>
 
-          {!isFormSubmitted ? (
-            // Form fields
-            <div className="space-y-6 py-4">
+          <div className="space-y-6 py-4">
               {/* Basic Job Details */}
               <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 space-y-4">
                 <h3 className="font-semibold text-lg">Basic Information</h3>
@@ -685,88 +672,28 @@ const handleEdit = () => {
                 </div>
               )}
             </div>
-          ) : (
-            // Confirmation view
-            <div className="space-y-4 py-4 max-h-[500px] overflow-y-auto">
-              <div className="space-y-3">
-                <h3 className="font-semibold">Basic Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Car Number</p>
-                    <p className="font-medium">{formData.carNumber}</p>
-                  </div>
-                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Customer Name</p>
-                    <p className="font-medium">{formData.customerName}</p>
-                  </div>
-                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Engine Number</p>
-                    <p className="font-medium">{formData.engineNumber || "N/A"}</p>
-                  </div>
-                  {formData.inspectionType && (
-                    <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                      <p className="text-sm text-indigo-700 dark:text-indigo-300">Inspection Type</p>
-                      <p className="font-medium text-indigo-900 dark:text-indigo-100">{formData.inspectionType}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <h3 className="font-semibold">Inspection Summary</h3>
-                <p className="text-sm text-muted-foreground">
-                  All inspection details have been recorded. Click 'Start' to begin the inspection.
-                </p>
-              </div>
-            </div>
-          )}
 
           <DialogFooter className="flex gap-2">
-            {!isFormSubmitted ? (
-              <>
-                <motion.button
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                  onClick={() => setIsDialogOpen(false)}
-                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
-                >
-                  Cancel
-                </motion.button>
-                <motion.button
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                  onClick={handleFormSubmit}
-                  className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg text-sm shadow-md hover:shadow-lg transition-all"
-                >
-                  Submit
-                </motion.button>
-              </>
-            ) : (
-              <>
-                <motion.button
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                  onClick={() => setIsFormSubmitted(false)}
-                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
-                >
-                  Back
-                </motion.button>
-                <motion.button
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                  onClick={handleStartInspection}
-                  disabled={isAnimating}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  {isAnimating ? "Starting..." : "Start"}
-                </motion.button>
-              </>
-            )}
+            <motion.button
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
+              onClick={() => setIsDialogOpen(false)}
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+            >
+              Cancel
+            </motion.button>
+            <motion.button
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
+              onClick={handleUpdateAndStart}
+              disabled={isAnimating}
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Sparkles className="w-4 h-4" />
+              {isAnimating ? "Updating & Starting..." : "Update & Start"}
+            </motion.button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,5 +1,6 @@
 import { connectToDB } from "@/lib/db";
 import { Job } from "@/models/Job";
+import { Counter } from "@/models/Counter";
 import { jobSchema } from "@/lib/validations/jobSchema";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -16,8 +17,23 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    
+    // Get and increment the job counter atomically
+    // @ts-ignore
+    const counter = await Counter.findOneAndUpdate(
+      { name: "jobCount" },
+      { $inc: { value: 1 } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+    
+    // Add the jobCount to the job data
+    const jobData = {
+      ...parsed.data,
+    jobCount: counter.value,
+    };
+    
     //@ts-ignore
-    const newJob = await Job.create(parsed.data);
+    const newJob = await Job.create(jobData);
     return NextResponse.json(newJob, { status: 201 });
   } catch (error) {
     return NextResponse.json(

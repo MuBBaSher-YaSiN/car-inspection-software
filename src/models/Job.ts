@@ -17,6 +17,7 @@ const InspectionTabSchema = new Schema({
 
 const JobSchema = new Schema(
   {
+    jobCount: { type: Number, required: true, unique: true },
     carNumber: { type: String, required: true },
     customerName: { type: String, required: true },
     engineNumber: { type: String },

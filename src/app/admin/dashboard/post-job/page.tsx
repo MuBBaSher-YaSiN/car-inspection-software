@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 // import { FiUpload } from "react-icons/fi";
 import { inspectionTabs } from "@/config/inspectionTabs";
 import type { Job, Severity, InspectionType } from "@/types/job";
@@ -10,8 +11,9 @@ import type { Job, Severity, InspectionType } from "@/types/job";
 export default function PostJobPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const prevInspectionTypeRef = useRef<InspectionType | undefined>(undefined);
-  const [form, setForm] = useState<Job>({
+  const [form, setForm] = useState<Partial<Job>>({
     _id: "",
     carNumber: "",
     customerName: "",
@@ -114,20 +116,33 @@ export default function PostJobPage() {
       return;
     }
     
-    const payload = {
-      carNumber: form.carNumber,
-      customerName: form.customerName,
-      engineNumber: form.engineNumber,
-      inspectionType: form.inspectionType,
-      inspectionTabs: form.inspectionTabs,
-      status: "pending",
-    };
-    const res = await fetch("/api/jobs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (res.ok) router.push("/admin/dashboard");
+    setIsSubmitting(true);
+    
+    try {
+      const payload = {
+        carNumber: form.carNumber,
+        customerName: form.customerName,
+        engineNumber: form.engineNumber,
+        inspectionType: form.inspectionType,
+        inspectionTabs: form.inspectionTabs,
+        status: "pending",
+      };
+      const res = await fetch("/api/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        router.push("/admin/dashboard");
+      } else {
+        alert("Failed to submit job. Please try again.");
+        setIsSubmitting(false);
+      }
+    } catch (error) {
+      console.error("Error submitting job:", error);
+      alert("An error occurred while submitting the job.");
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -191,132 +206,14 @@ export default function PostJobPage() {
           </select>
         </div>
       </div>
-{form.inspectionType &&    <>
-      {/* Tabs */}
-      <div className="flex flex-wrap space-x-2 mb-4">
-        {form.inspectionTabs.map((tab) => (
-          <button
-            key={tab.key}
-            className={`px-4 py-2 my-2 rounded transition-colors ${
-              activeTab === tab.key
-                ? "bg-indigo-600 text-white"
-                : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
-            }`}
-            onClick={() => setActiveTab(tab.key)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
-      {form.inspectionTabs
-        .filter((tab) => tab.key === activeTab)
-        .map((tab) => (
-          <div key={tab.key} className="space-y-4">
-            {tab.subIssues.map((issue) => (
-              <div
-                key={issue.key}
-                className="p-4 bg-white dark:bg-gray-800 rounded shadow"
-              >
-                <h3 className="font-bold mb-2 text-gray-900 dark:text-white">
-                  {issue.label}
-                </h3>
-
-                <select
-                  value={issue.severity}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      inspectionTabs: prev.inspectionTabs.map((t) =>
-                        t.key === tab.key
-                          ? {
-                              ...t,
-                              subIssues: t.subIssues.map((i) =>
-                                i.key === issue.key
-                                  ? {
-                                      ...i,
-                                      severity: e.target.value as Severity,
-                                    }
-                                  : i
-                              ),
-                            }
-                          : t
-                      ),
-                    }))
-                  }
-                  className="mb-2 border border-gray-300 dark:border-gray-600 p-2 rounded w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  <option value="minor">Minor</option>
-                  <option value="major">Major</option>
-                  <option value="ok">OK</option>
-                </select>
-
-                <textarea
-                  placeholder="Comment"
-                  value={issue.comment}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      inspectionTabs: prev.inspectionTabs.map((t) =>
-                        t.key === tab.key
-                          ? {
-                              ...t,
-                              subIssues: t.subIssues.map((i) =>
-                                i.key === issue.key
-                                  ? { ...i, comment: e.target.value }
-                                  : i
-                              ),
-                            }
-                          : t
-                      ),
-                    }))
-                  }
-                  className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded mb-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-
-                {/* <label className="flex items-center space-x-2 cursor-pointer text-gray-900 dark:text-white">
-                  <FiUpload />
-                  <span>Upload Images</span>
-                  <input
-                    type="file"
-                    multiple
-                    className="hidden"
-                    onChange={(e) =>
-                      handleFileChange(tab.key, issue.key, e.target.files)
-                    }
-                  />
-                </label> */}
-
-                {/* {issue.images.length > 0 && (
-                  <div className="flex space-x-2 mt-2">
-                    {issue.images.map((src, idx) => (
-                      <div
-                        key={idx}
-                        className="relative w-20 h-20 rounded border border-gray-300 dark:border-gray-600 overflow-hidden"
-                      >
-                        <Image
-                          src={src}
-                          alt={`Issue image ${idx + 1}`}
-                          fill
-                          className="object-cover"
-                          sizes="80px"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )} */}
-              </div>
-            ))}
-          </div>
-        ))}
-    </>}
       {/* Submit */}
       <button
         onClick={handleSubmit}
-        className="mt-6 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-800 text-white px-4 py-2 rounded transition-colors"
+        disabled={isSubmitting}
+        className="mt-6 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-800 text-white px-4 py-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
       >
-        Submit Job
+        {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+        {isSubmitting ? "Submitting..." : "Submit Job"}
       </button>
     </div>
   );

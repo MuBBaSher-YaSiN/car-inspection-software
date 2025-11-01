@@ -296,7 +296,7 @@ export async function generateJobPDF(job: Job, logoBytes?: Uint8Array, bannerByt
     // borderRadius: 5,
   });
 
-  const infoLeft = [`FILE #: ${job._id || "-"}`, `CHASSIS #: ${job.engineNumber || "-"}`];
+  const infoLeft = [`FILE #: ${job.jobCount || "-"}`, `CHASSIS #: ${job.engineNumber || "-"}`];
   const infoRight = [
     `INSPECTOR: ${job.customerName || "-"}`,
     `DATE: ${new Date().toISOString().slice(0, 10)}`,

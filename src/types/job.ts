@@ -23,6 +23,7 @@ export interface InspectionTab {
 
 export interface Job {
   _id: string;
+  jobCount: number;
   carNumber: string;
   customerName: string;
   engineNumber?: string;
