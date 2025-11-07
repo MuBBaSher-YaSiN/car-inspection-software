@@ -197,18 +197,19 @@ export async function generateJobPDF(job: Job, logoBytes?: Uint8Array, bannerByt
       const bannerDims = bannerImg.scale(1);
       
       // Calculate dimensions to fit the header while maintaining aspect ratio
+      // Use content width (with margins) instead of full page width
       const bannerAspect = bannerDims.width / bannerDims.height;
-      const bannerWidth = width;
+      const bannerWidth = width - marginX * 2;
       const bannerHeight = bannerWidth / bannerAspect;
       
       page.drawImage(bannerImg, {
-        x: 0,
-        y: height - bannerHeight,
+        x: marginX,
+        y: height - bannerHeight - 20,
         width: bannerWidth,
         height: bannerHeight,
       });
       
-      y = height - bannerHeight - 40;
+      y = height - bannerHeight - 60;
     } catch (e) {
       console.warn("Banner embedding failed", e);
       // Fallback to gradient header if banner fails
@@ -296,7 +297,7 @@ export async function generateJobPDF(job: Job, logoBytes?: Uint8Array, bannerByt
     // borderRadius: 5,
   });
 
-  const infoLeft = [`FILE #: ${job.jobCount || "-"}`,`VEHICLE: ${job.carNumber || "-"}`, `CHASSIS #: ${job.engineNumber || "-"}`];
+  const infoLeft = [`FILE #: ${job.jobCount || "-"}`,`VEHICLE: ${job.carNumber || "-"}`, `CHASSIS #: ${job.engineNumber.toUpperCase() || "-"}`];
   const infoRight = [
     `INSPECTOR: ${job.customerName || "-"}`,
     `DATE: ${new Date().toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' })}`,
