@@ -4,30 +4,43 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Search, Filter, RefreshCw } from "lucide-react";
+import { Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import type { Job } from "@/types/job";
 import { containerVariants, titleVariants } from "@/lib/animations";
-
 
 export default function AdminDashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [filtered, setFiltered] = useState<Job[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (currentPage = page) => {
     setIsRefreshing(true);
-    const res = await fetch("/api/jobs");
+    const params = new URLSearchParams({
+      page: currentPage.toString(),
+      limit: "10",
+      ...(startDate && { startDate }),
+      ...(endDate && { endDate }),
+    });
+    const res = await fetch(`/api/jobs?${params}`);
     const data = await res.json();
-    setJobs(data);
-    setFiltered(data);
+    setJobs(data.jobs);
+    setFiltered(data.jobs);
+    setTotal(data.pagination.total);
+    setTotalPages(data.pagination.totalPages);
     setIsRefreshing(false);
     setIsInitialLoad(false);
   };
 
   useEffect(() => {
-    fetchJobs();
-  }, []);
+    fetchJobs(1);
+    setPage(1);
+  }, [startDate, endDate]);
 
   const handleSearch = (query: string) => {
     const filteredJobs = jobs.filter(
@@ -80,7 +93,7 @@ export default function AdminDashboard() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={fetchJobs}
+            onClick={() => fetchJobs(page)}
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
@@ -88,16 +101,32 @@ export default function AdminDashboard() {
           </motion.button>
         </motion.div>
 
-        {/* Search and filter */}
-      
-        <motion.div 
-          variants={titleVariants}
-          className="grid grid-cols-1 md:grid-cols-2 pb-2 gap-4"
-        >
+        {/* Date range and filters */}
+        <motion.div variants={titleVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 pb-2 gap-4">
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="pl-10 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
+            />
+          </div>
+          
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="pl-10 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
+            />
+          </div>
+
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by car number or customer..."
+              placeholder="Search by car or customer..."
               onChange={(e) => handleSearch(e.target.value)}
               className="pl-10 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
             />
@@ -146,16 +175,63 @@ export default function AdminDashboard() {
             </p>
           </motion.div>
         ) : (
-          <motion.div 
-            variants={containerVariants}
-            className="grid grid-cols-1 gap-4"
-          >
-            <AnimatePresence>
-              {filtered.map((job) => (
-                <JobCard key={job._id} job={job} refreshJobs={fetchJobs} />
-              ))}
-            </AnimatePresence>
-          </motion.div>
+          <>
+            <motion.div 
+              variants={containerVariants}
+              className="grid grid-cols-1 gap-4"
+            >
+              <AnimatePresence>
+                {filtered.map((job) => (
+                  <JobCard key={job._id} job={job} refreshJobs={fetchJobs} />
+                ))}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <motion.div 
+                variants={titleVariants}
+                className="flex items-center justify-between border-t pt-4"
+              >
+                <p className="text-sm text-muted-foreground">
+                  Showing {filtered.length} of {total} jobs
+                </p>
+                <div className="flex items-center gap-2">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      const newPage = page - 1;
+                      setPage(newPage);
+                      fetchJobs(newPage);
+                    }}
+                    disabled={page === 1}
+                    className="flex items-center gap-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </motion.button>
+                  <span className="text-sm px-4">
+                    Page {page} of {totalPages}
+                  </span>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      const newPage = page + 1;
+                      setPage(newPage);
+                      fetchJobs(newPage);
+                    }}
+                    disabled={page === totalPages}
+                    className="flex items-center gap-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+          </>
         )}
       </motion.div>
     </div>

@@ -54,40 +54,57 @@ export async function GET(req: Request) {
 
     await connectToDB();
 
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+
+    // Default to last 24 hours if no date range provided
+    const start = startDate ? new Date(startDate) : new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const end = endDate ? new Date(endDate) : new Date();
+
     const role = session.user.role;
     const email = session.user.email;
 
-    let jobs;
+    let query: any = { createdAt: { $gte: start, $lte: end } };
 
-    if (role === "admin") {
-      // @ts-ignore
-      jobs = await Job.find({}).populate("assignedTo", "email") .sort({ createdAt: -1 });
-    } else {
-      //  Lookup user ID from email
+    if (role !== "admin") {
       const user = await User.findOne({ email });
-
       if (!user) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
-
-      const userId = user._id;
-// @ts-ignore
-      jobs = await Job.find({
-        $or: [
-          { status: "pending" },
-          { status: "in_progress", assignedTo: userId },
-        ],
-      }).sort({ createdAt: -1 });
+      query.$or = [
+        { status: "pending" },
+        { status: "in_progress", assignedTo: user._id },
+      ];
     }
 
-    return NextResponse.json(jobs);
+    const skip = (page - 1) * limit;
+    const total = await Job.countDocuments(query);
+    // @ts-ignore
+    const jobs = await Job.find(query)
+      .populate("assignedTo", "email")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    return NextResponse.json({
+      jobs,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error: unknown) {
-  console.error(" Failed to fetch jobs:", error);
-  const message = error instanceof Error ? error.message : "Unknown error";
-  return NextResponse.json(
-    { error: "Failed to fetch jobs", details: message },
-    { status: 500 }
-  );
-}
+    console.error(" Failed to fetch jobs:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json(
+      { error: "Failed to fetch jobs", details: message },
+      { status: 500 }
+    );
+  }
 }
 

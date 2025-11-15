@@ -35,6 +35,17 @@ export default function JobCard({ job, refreshJobs }: { job: unknown; refreshJob
   const userId = session?.user?._id;
   const assignedTo = typeof job.assignedTo === "object" ? job.assignedTo._id : job.assignedTo;
   const statusText = job.status.replace("_", " ");
+  
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", { 
+      month: "short", 
+      day: "numeric", 
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  };
 
   // Status color mapping
   const statusColors = {
@@ -322,17 +333,22 @@ const handleEdit = () => {
               </div>
             </div>
             
-            <motion.span
-              variants={statusVariants}
-              className={`px-3 py-1.5 text-xs rounded-full font-medium flex items-center gap-1 ${
-                statusColors[localStatus]?.bg || "bg-gray-100"
-              } ${statusColors[localStatus]?.text || "text-gray-800"}`}
-            >
-              {localStatus === "accepted" && <Check className="w-3 h-3" />}
-              {localStatus === "rejected" && <X className="w-3 h-3" />}
-              {localStatus === "in_progress" && <Wrench className="w-3 h-3" />}
-              {statusText}
-            </motion.span>
+            <div className="flex flex-col items-end gap-1">
+              <motion.span
+                variants={statusVariants}
+                className={`px-3 py-1.5 text-xs rounded-full font-medium flex items-center gap-1 ${
+                  statusColors[localStatus]?.bg || "bg-gray-100"
+                } ${statusColors[localStatus]?.text || "text-gray-800"}`}
+              >
+                {localStatus === "accepted" && <Check className="w-3 h-3" />}
+                {localStatus === "rejected" && <X className="w-3 h-3" />}
+                {localStatus === "in_progress" && <Wrench className="w-3 h-3" />}
+                {statusText}
+              </motion.span>
+              <p className="text-xs text-muted-foreground">
+                {formatDate(job.createdAt)}
+              </p>
+            </div>
           </div>
 
           {/* Details grid */}
