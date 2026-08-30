@@ -8,6 +8,9 @@ import type { Job as JobType } from "@/types/job";
 import { readFile } from "fs/promises";
 import { join } from "path";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
