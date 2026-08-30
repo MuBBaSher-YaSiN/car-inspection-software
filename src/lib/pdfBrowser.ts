@@ -33,14 +33,27 @@ async function resolveLocalChrome(): Promise<string> {
 }
 
 export async function launchBrowser(): Promise<Browser> {
-  if (isServerless()) {
+  const serverless = isServerless();
+  console.log(
+    `[pdf] launch serverless=${serverless} vercel=${process.env.VERCEL ?? "0"} node_env=${
+      process.env.NODE_ENV
+    } mem=${process.env.AWS_LAMBDA_FUNCTION_MEMORY_SIZE ?? "?"}MB`
+  );
+
+  if (serverless) {
     const chromium = (await import("@sparticuz/chromium")).default;
     chromium.setGraphicsMode = false;
+
+    const started = Date.now();
+    const executablePath = await chromium.executablePath();
+    console.log(
+      `[pdf] chromium binary=${executablePath} unpacked_in=${Date.now() - started}ms`
+    );
 
     return puppeteer.launch({
       args: chromium.args,
       defaultViewport: { width: 794, height: 1123 },
-      executablePath: await chromium.executablePath(),
+      executablePath,
       headless: true,
     });
   }
@@ -53,10 +66,16 @@ export async function launchBrowser(): Promise<Browser> {
 }
 
 export async function renderHtmlToPdf(html: string): Promise<Uint8Array> {
-  const browser = await launchBrowser();
+  const started = Date.now();
+  let browser: Browser | undefined;
 
   try {
+    browser = await launchBrowser();
+    console.log(`[pdf] browser up in ${Date.now() - started}ms`);
+
     const page = await browser.newPage();
+    page.on("pageerror", (e: Error) => console.warn(`[pdf] page error: ${e.message}`));
+
     await page.setContent(html, { waitUntil: "load" });
     await page.evaluateHandle("document.fonts.ready");
 
@@ -66,8 +85,17 @@ export async function renderHtmlToPdf(html: string): Promise<Uint8Array> {
       preferCSSPageSize: true,
     });
 
+    console.log(
+      `[pdf] printed ${Math.round(pdf.length / 1024)}KB in ${Date.now() - started}ms`
+    );
     return new Uint8Array(pdf);
+  } catch (error) {
+    console.error(
+      `[pdf] render FAILED after ${Date.now() - started}ms:`,
+      error instanceof Error ? `${error.name}: ${error.message}` : error
+    );
+    throw error;
   } finally {
-    await browser.close();
+    await browser?.close().catch(() => {});
   }
 }

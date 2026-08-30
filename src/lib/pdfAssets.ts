@@ -34,9 +34,11 @@ async function toDataUrl(path: string, mime: string): Promise<string | null> {
     const bytes = await readFile(path);
     const url = `data:${mime};base64,${bytes.toString("base64")}`;
     dataUrlCache.set(path, url);
+    console.log(`[pdf] asset ok ${path} ${Math.round(bytes.length / 1024)}KB`);
     return url;
   } catch {
     dataUrlCache.set(path, null);
+    console.warn(`[pdf] asset MISSING ${path}`);
     return null;
   }
 }
