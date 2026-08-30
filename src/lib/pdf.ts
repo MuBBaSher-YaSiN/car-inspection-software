@@ -84,7 +84,13 @@ export async function generateJobPDF(
   const jobPrice = Math.max(0, Number(job.price) || 0);
   const showCost = includePrice && jobPrice > 0;
 
+  const translateStarted = Date.now();
   const { labels, issues } = await buildTranslatedContent(job, locale);
+  console.log(
+    `[pdf] translated locale=${locale} issues=${issues.length} in ${
+      Date.now() - translateStarted
+    }ms`
+  );
 
   const fallback = PDF_LABELS_EN.fallback;
   const inspectionType = job.inspectionType?.trim() || fallback;
@@ -126,6 +132,8 @@ export async function generateJobPDF(
       ? bytesToDataUrl(options.carDiagramBytes)
       : null,
   });
+
+  console.log(`[pdf] html ${Math.round(html.length / 1024)}KB`);
 
   return renderHtmlToPdf(html);
 }
